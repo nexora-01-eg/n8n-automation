@@ -1,0 +1,11 @@
+{
+  "app": { "name": "Opportunity Hunter", "version": "0.1.0", "timezone": "Africa/Cairo" },
+  "schedule": { "interval": "every 4 hours", "note": "n8n schedule trigger mirrors this; edit in n8n UI too" },
+  "sources": [
+    { "id": "hn_hiring", "enabled": true, "max_items": 40, "note": "HN Who-is-hiring via public Algolia+Firebase APIs, no auth" },
+    { "id": "remoteok", "enabled": true, "max_items": 50, "note": "RemoteOK public API, no auth. Link back per their ToS." }
+  ],
+  "scoring": { "weights": { "service_match": 30, "budget": 20, "freshness": 15, "clarity": 15, "remote": 10, "client": 10, "missing_penalty": 15, "risk_penalty": 20 } },
+  "ai": { "mode": "AI_DISABLED", "provider": null },
+  "retention": { "backups_keep": 10, "note": "Never auto-delete beyond keep-count without explicit approval" }
+}

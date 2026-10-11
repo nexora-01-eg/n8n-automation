@@ -1,0 +1,122 @@
+﻿{
+    "slug":  "ai-news-pipeline",
+    "version":  "v001",
+    "goal":  "Pipeline ÙŠØ¬Ù…Ø¹ Ø£Ø®Ø¨Ø§Ø± Ø§Ù„Ø°ÙƒØ§Ø¡ Ø§Ù„Ø§ØµØ·Ù†Ø§Ø¹ÙŠ Ù…Ù† RSS Ø¹Ø§Ù…Ø©ØŒ ÙŠÙ†Ø¸ÙÙ‡Ø§ ÙˆÙŠÙˆØ­Ø¯Ù‡Ø§ØŒ ÙŠØ²ÙŠÙ„ Ø§Ù„ØªÙƒØ±Ø§Ø± Ø¨Ø¨ØµÙ…Ø© Ø«Ø§Ø¨ØªØ©ØŒ ÙŠØµÙ†ÙÙ‡Ø§ Ø¨Ù‚ÙˆØ§Ø¹Ø¯ Ù…Ø­Ø¯Ø¯Ø©ØŒ ÙŠØ¬Ù‡Ø² Ù…Ø±Ø­Ù„Ø© AI Ù…Ø³ØªÙ‚Ù„Ø© (Ù…Ø¹Ø·Ù„Ø© Ø¨Ø¯ÙˆÙ† Credentials)ØŒ ÙŠØ­ÙØ¸ Ø§Ù„Ù†ØªØ§Ø¦Ø¬ Ù…Ø­Ù„ÙŠÙ‹Ø§ Ø¨Ø¯ÙˆÙ† ØªÙƒØ±Ø§Ø±ØŒ ÙˆÙŠØ¹Ù…Ù„ ÙƒÙ„ 30 Ø¯Ù‚ÙŠÙ‚Ø© (ØºÙŠØ± Ù…ÙØ¹Ù„ Ø­ØªÙ‰ Ø§Ù„Ù…ÙˆØ§ÙÙ‚Ø©). Ø¨Ù„Ø§ Telegram/Email/Ù†Ø´Ø± Ø®Ø§Ø±Ø¬ÙŠ.",
+    "trigger":  {
+                    "type":  "schedule",
+                    "schedule":  "every 30 minutes (schedule node + manual trigger for testing, workflow stays inactive)",
+                    "httpMethod":  "GET",
+                    "path":  "",
+                    "feedUrl":  "https://www.theguardian.com/technology/artificialintelligenceai/rss"
+                },
+    "inputs":  [
+                   "Public RSS feeds (Guardian AI, MIT Technology Review), no auth",
+                   "Existing local date file for cross-run dedupe"
+               ],
+    "processing":  [
+                       {
+                           "step":  "step1",
+                           "action":  "Load sources config (single edit point)",
+                           "node":  "TODO: assigned by OpenCode"
+                       },
+                       {
+                           "step":  "step2",
+                           "action":  "Fetch each feed (per-source error isolation)",
+                           "node":  "TODO: assigned by OpenCode"
+                       },
+                       {
+                           "step":  "step3",
+                           "action":  "Normalize to fixed schema",
+                           "node":  "TODO: assigned by OpenCode"
+                       },
+                       {
+                           "step":  "step4",
+                           "action":  "Deduplicate by fingerprint (URL + normalized title)",
+                           "node":  "TODO: assigned by OpenCode"
+                       },
+                       {
+                           "step":  "step5",
+                           "action":  "Filter malformed/low-quality items",
+                           "node":  "TODO: assigned by OpenCode"
+                       },
+                       {
+                           "step":  "step6",
+                           "action":  "Classify with deterministic rules (honest: NOT AI-powered)",
+                           "node":  "TODO: assigned by OpenCode"
+                       },
+                       {
+                           "step":  "step7",
+                           "action":  "AI enrichment stage in AI_DISABLED mode (extensible later)",
+                           "node":  "TODO: assigned by OpenCode"
+                       },
+                       {
+                           "step":  "step8",
+                           "action":  "Shape structured output",
+                           "node":  "TODO: assigned by OpenCode"
+                       },
+                       {
+                           "step":  "step9",
+                           "action":  "Store locally merged by fingerprint (idempotent)",
+                           "node":  "TODO: assigned by OpenCode"
+                       },
+                       {
+                           "step":  "step10",
+                           "action":  "Build execution report",
+                           "node":  "TODO: assigned by OpenCode"
+                       }
+                   ],
+    "conditions":  [
+                       "Skip items with empty title AND url (quarantine)",
+                       "Keep items passing quality filter only"
+                   ],
+    "externalServices":  "Public RSS GET requests (Guardian, MIT TR)",
+    "outputs":  {
+                    "description":  "Items: title, url, source, publishedAt, description, category, importance 0-100, summary, topics, fingerprint, processedAt + execution report",
+                    "example":  {
+                                    "title":  "",
+                                    "url":  "",
+                                    "source":  "",
+                                    "publishedAt":  "",
+                                    "description":  "",
+                                    "category":  "",
+                                    "importance":  0,
+                                    "summary":  "",
+                                    "topics":  [
+
+                                               ],
+                                    "fingerprint":  "",
+                                    "processedAt":  ""
+                                },
+                    "storage":  "n8n_data/news-data/YYYY-MM-DD.json + backups mirror, merged by fingerprint"
+                },
+    "schedule":  "every 30 minutes (schedule node + manual trigger for testing, workflow stays inactive)",
+    "errorHandling":  {
+                          "onFailure":  "continue",
+                          "notifyChannel":  ""
+                      },
+    "retryPolicy":  {
+                        "maxRetries":  1,
+                        "backoff":  "60s"
+                    },
+    "deduplication":  {
+                          "enabled":  true,
+                          "key":  "sha256(url|normalizedTitle)",
+                          "strategy":  "in-batch + cross-run merge by fingerprint"
+                      },
+    "storage":  "n8n_data/news-data/YYYY-MM-DD.json + backups mirror, merged by fingerprint",
+    "notifications":  {
+
+                      },
+    "credentialsRequired":  [
+
+                            ],
+    "security":  {
+                     "dataSentExternally":  [
+                                                "public RSS GET requests only (feed XML download)"
+                                            ],
+                     "sideEffects":  [
+
+                                     ],
+                     "approvalRequired":  false
+                 }
+}

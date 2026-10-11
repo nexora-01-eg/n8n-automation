@@ -1,0 +1,16 @@
+{
+    "workflowId":  "probe-file-01",
+    "status":  "success",
+    "nodes":  {
+                  "Start":  [
+                                {
+
+                                }
+                            ],
+                  "Make Item":  [
+                                    {
+                                        "wrote":  true
+                                    }
+                                ]
+              }
+}

@@ -1,0 +1,88 @@
+{
+    "name":  "Probe Fanout (temp)",
+    "id":  "probe-fanout-01",
+    "active":  false,
+    "nodes":  [
+                  {
+                      "parameters":  {
+
+                                     },
+                      "id":  "o0000000-0000-4000-8000-000000000001",
+                      "name":  "Start",
+                      "type":  "n8n-nodes-base.manualTrigger",
+                      "typeVersion":  1,
+                      "position":  [
+                                       240,
+                                       300
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "return [{ json: { v: 1 } }];"
+                                     },
+                      "id":  "o0000000-0000-4000-8000-000000000002",
+                      "name":  "Src",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       460,
+                                       300
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+
+                                     },
+                      "id":  "o0000000-0000-4000-8000-000000000003",
+                      "name":  "Branch A",
+                      "type":  "n8n-nodes-base.noOp",
+                      "typeVersion":  1,
+                      "position":  [
+                                       680,
+                                       220
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+
+                                     },
+                      "id":  "o0000000-0000-4000-8000-000000000004",
+                      "name":  "Branch B",
+                      "type":  "n8n-nodes-base.noOp",
+                      "typeVersion":  1,
+                      "position":  [
+                                       680,
+                                       380
+                                   ]
+                  }
+              ],
+    "connections":  {
+                        "Start":  {
+                                      "main":  [
+                                                   [
+                                                       {
+                                                           "node":  "Src",
+                                                           "type":  "main",
+                                                           "index":  0
+                                                       }
+                                                   ]
+                                               ]
+                                  },
+                        "Src":  {
+                                    "main":  [
+                                                 [
+                                                     {
+                                                         "node":  "Branch A",
+                                                         "type":  "main",
+                                                         "index":  0
+                                                     },
+                                                     {
+                                                         "node":  "Branch B",
+                                                         "type":  "main",
+                                                         "index":  0
+                                                     }
+                                                 ]
+                                             ]
+                                }
+                    }
+}

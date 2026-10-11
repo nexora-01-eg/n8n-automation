@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Opportunity Hunter</title>
+<link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+<header>
+<h1>🎯 Opportunity <span>Hunter</span></h1>
+<nav>
+<button data-v="dash" class="on">Dashboard</button>
+<button data-v="opps">Opportunities</button>
+<button data-v="money">First Money</button>
+<button data-v="sources">Sources</button>
+<button data-v="runs">Runs</button>
+</nav>
+<span style="flex:1"></span>
+<button class="btn" id="runBtn">Run now</button>
+</header>
+<main>
+<section class="view" id="v-dash">
+<div class="cards" id="dashCards"></div>
+<div class="grid2">
+<div class="panel"><h2>Pipeline: Discovery → Won</h2><div id="funnel"></div></div>
+<div class="panel"><h2>By Source / Category</h2><div id="dashSrc"></div><div id="dashCat" style="margin-top:12px"></div></div>
+</div>
+</section>
+<section class="view" id="v-opps" style="display:none">
+<div class="panel"><h2>Opportunities</h2>
+<div class="toolbar">
+<input id="fQ" placeholder="Search title, description, company…" style="flex:2;min-width:200px">
+<select id="fStatus"><option value="">All statuses</option><option>NEW</option><option>REVIEWING</option><option>INTERESTED</option><option>APPLIED</option><option>CONTACTED</option><option>REPLIED</option><option>WON</option><option>LOST</option><option>REJECTED</option><option>ARCHIVED</option></select>
+<select id="fCat"><option value="">All categories</option></select>
+<input id="fSrc" placeholder="source" style="width:130px">
+<input id="fScore" placeholder="min score" type="number" min="0" max="100" style="width:100px">
+</div>
+<div id="oppTable"></div></div>
+</section>
+<section class="view" id="v-money" style="display:none">
+<div class="grid2">
+<div class="panel"><h2>Top Unreviewed</h2><div id="moneyNew"></div></div>
+<div class="panel"><h2>With Budget</h2><div id="moneyBudget"></div></div>
+</div>
+<div class="panel"><h2>Interested</h2><div id="moneyInt"></div></div>
+</section>
+<section class="view" id="v-sources" style="display:none">
+<div class="panel"><h2>Sources</h2><div id="srcTable"></div></div>
+</section>
+<section class="view" id="v-runs" style="display:none">
+<div class="panel"><h2>Runs</h2><div id="runTable"></div></div>
+</section>
+</main>
+<div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
+<script src="/assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,250 @@
+{
+    "name":  "demo-local-summary v001",
+    "id":  "demo-local-summary-v001",
+    "active":  false,
+    "nodes":  [
+                  {
+                      "parameters":  {
+
+                                     },
+                      "id":  "2bf44d06-47bf-4016-968d-573acd930fd3",
+                      "name":  "Trigger",
+                      "type":  "n8n-nodes-base.manualTrigger",
+                      "typeVersion":  1,
+                      "position":  [
+                                       240,
+                                       300
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "try { console.log(\"[demo-local] generating sample items\"); return [{json:{title:\"Local AI model released\",link:\"https://local.test/n1\",body:\"A new local AI model was released today with agent support.\"}},{json:{title:\"Local AI model released\",link:\"https://local.test/n1\",body:\"Duplicate of the first item.\"}},{json:{title:\"Neighborhood football results\",link:\"https://local.test/n2\",body:\"Weekend football scores from the neighborhood league.\"}},{json:{title:\"Agents automate office work\",link:\"https://local.test/n3\",body:\"AI agents now handle office workflows and llm tasks.\"}}]; } catch (err) { console.log(\"[demo-local] ERROR step1: \" + err.message); return [{json:{success:false, error:err.message}}]; }"
+                                     },
+                      "id":  "116bf448-d751-41f9-85a4-bf7738eab56a",
+                      "name":  "Step 1",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       460,
+                                       300
+                                   ],
+                      "settings":  {
+                                       "onError":  "continueRegularOutput"
+                                   }
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "try { const seen = new Set(); const out = []; for (const item of $input.all()) { const link = item.json.link || \"\"; if (seen.has(link)) { console.log(\"[demo-local] duplicate skipped: \" + link); continue; } seen.add(link); const text = ((item.json.title || \"\") + \" \" + (item.json.body || \"\")).toLowerCase(); let score = 0; let category = \"general\"; if (text.includes(\"ai\") || text.includes(\"llm\") || text.includes(\"agent\") || text.includes(\"model\")) { score += 2; category = \"ai\"; } if (text.includes(\"football\") || text.includes(\"league\")) { category = \"sports\"; } out.push({json:{title:item.json.title, link:link, category:category, important:(score \u003e= 2)}}); } console.log(\"[demo-local] kept \" + out.length + \" unique items\"); return out; } catch (err) { console.log(\"[demo-local] ERROR step2: \" + err.message); return [{json:{success:false, error:err.message}}]; }"
+                                     },
+                      "id":  "6caf6889-7468-4fec-bff2-c1bcb1714e3c",
+                      "name":  "Step 2",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       680,
+                                       300
+                                   ],
+                      "settings":  {
+                                       "onError":  "continueRegularOutput"
+                                   }
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "try { const out = []; for (const item of $input.all()) { out.push({json:{title:item.json.title, link:item.json.link, category:item.json.category, important:item.json.important, routed:true, processedAt:new Date().toISOString()}}); } return out; } catch (err) { console.log(\"[demo-local] ERROR step3: \" + err.message); return [{json:{success:false, error:err.message}}]; }"
+                                     },
+                      "id":  "b2a4a9f9-96da-4c5b-a23d-5cf085f1764c",
+                      "name":  "Step 3",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       900,
+                                       300
+                                   ],
+                      "settings":  {
+                                       "onError":  "continueRegularOutput"
+                                   }
+                  },
+                  {
+                      "parameters":  {
+                                         "conditions":  {
+                                                            "options":  {
+                                                                            "caseSensitive":  true,
+                                                                            "leftValue":  "",
+                                                                            "typeValidation":  "loose"
+                                                                        },
+                                                            "conditions":  [
+                                                                               {
+                                                                                   "id":  "cond1",
+                                                                                   "leftValue":  "={{ $json.important }}",
+                                                                                   "rightValue":  true,
+                                                                                   "operator":  {
+                                                                                                    "type":  "boolean",
+                                                                                                    "operation":  "true"
+                                                                                                }
+                                                                               }
+                                                                           ],
+                                                            "combinator":  "and"
+                                                        },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "922f52ee-b209-4b3e-a5ad-5d6e08237e4d",
+                      "name":  "Check - Output only items with important=true",
+                      "type":  "n8n-nodes-base.if",
+                      "typeVersion":  2.2,
+                      "position":  [
+                                       1120,
+                                       300
+                                   ],
+                      "notes":  "SPEC condition: Output only items with important=true — refine expression as needed"
+                  },
+                  {
+                      "parameters":  {
+
+                                     },
+                      "id":  "4f008765-7f35-4bcb-8b46-73f122f2b358",
+                      "name":  "Check - Output only items with important=true - Skipped",
+                      "type":  "n8n-nodes-base.noOp",
+                      "typeVersion":  1,
+                      "position":  [
+                                       1120,
+                                       480
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "assignments":  {
+                                                             "assignments":  [
+                                                                                 {
+                                                                                     "id":  "gb5a427",
+                                                                                     "name":  "title",
+                                                                                     "value":  "={{ $json.title }}",
+                                                                                     "type":  "string"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "g8e6357",
+                                                                                     "name":  "link",
+                                                                                     "value":  "={{ $json.link }}",
+                                                                                     "type":  "string"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "g339ceb",
+                                                                                     "name":  "category",
+                                                                                     "value":  "={{ $json.category }}",
+                                                                                     "type":  "string"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "gfa8773",
+                                                                                     "name":  "important",
+                                                                                     "value":  "={{ $json.important }}",
+                                                                                     "type":  "boolean"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "g1abcc1",
+                                                                                     "name":  "processedAt",
+                                                                                     "value":  "={{ $json.processedAt }}",
+                                                                                     "type":  "string"
+                                                                                 }
+                                                                             ]
+                                                         },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "3a458887-9c49-4d83-8b89-4d6a317a32e1",
+                      "name":  "Shape Output",
+                      "type":  "n8n-nodes-base.set",
+                      "typeVersion":  3.4,
+                      "position":  [
+                                       1340,
+                                       300
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "content":  "## demo-local-summary v001\nLocal demo: build a small in-memory news list, remove duplicates, classify items, keep important ones, and shape a clear output. No external APIs, no credentials, manual trigger.",
+                                         "height":  140,
+                                         "width":  360
+                                     },
+                      "id":  "a0591f85-296f-4634-a3fb-a2db2ae9941f",
+                      "name":  "SPEC Note",
+                      "type":  "n8n-nodes-base.stickyNote",
+                      "typeVersion":  1,
+                      "position":  [
+                                       240,
+                                       80
+                                   ]
+                  }
+              ],
+    "connections":  {
+                        "Trigger":  {
+                                        "main":  [
+                                                     [
+                                                         {
+                                                             "node":  "Step 1",
+                                                             "type":  "main",
+                                                             "index":  0
+                                                         }
+                                                     ]
+                                                 ]
+                                    },
+                        "Step 1":  {
+                                       "main":  [
+                                                    [
+                                                        {
+                                                            "node":  "Step 2",
+                                                            "type":  "main",
+                                                            "index":  0
+                                                        }
+                                                    ]
+                                                ]
+                                   },
+                        "Step 2":  {
+                                       "main":  [
+                                                    [
+                                                        {
+                                                            "node":  "Step 3",
+                                                            "type":  "main",
+                                                            "index":  0
+                                                        }
+                                                    ]
+                                                ]
+                                   },
+                        "Step 3":  {
+                                       "main":  [
+                                                    [
+                                                        {
+                                                            "node":  "Check - Output only items with important=true",
+                                                            "type":  "main",
+                                                            "index":  0
+                                                        }
+                                                    ]
+                                                ]
+                                   },
+                        "Check - Output only items with important=true":  {
+                                                                              "main":  [
+                                                                                           [
+                                                                                               {
+                                                                                                   "node":  "Shape Output",
+                                                                                                   "type":  "main",
+                                                                                                   "index":  0
+                                                                                               }
+                                                                                           ],
+                                                                                           [
+                                                                                               {
+                                                                                                   "node":  "Check - Output only items with important=true - Skipped",
+                                                                                                   "type":  "main",
+                                                                                                   "index":  0
+                                                                                               }
+                                                                                           ]
+                                                                                       ]
+                                                                          }
+                    },
+    "settings":  {
+                     "executionOrder":  "v1",
+                     "timezone":  "Africa/Cairo",
+                     "saveDataErrorExecution":  "all",
+                     "saveDataSuccessExecution":  "all"
+                 }
+}

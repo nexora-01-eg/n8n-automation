@@ -1,0 +1,46 @@
+{
+    "name":  "Probe Child Boom (temp)",
+    "id":  "probe-child-boom",
+    "active":  false,
+    "nodes":  [
+                  {
+                      "parameters":  {
+
+                                     },
+                      "id":  "k0000000-0000-4000-8000-000000000001",
+                      "name":  "Manual In",
+                      "type":  "n8n-nodes-base.manualTrigger",
+                      "typeVersion":  1,
+                      "position":  [
+                                       240,
+                                       300
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "throw new Error(\"child-boom\");"
+                                     },
+                      "id":  "k0000000-0000-4000-8000-000000000002",
+                      "name":  "Boom",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       460,
+                                       300
+                                   ]
+                  }
+              ],
+    "connections":  {
+                        "Manual In":  {
+                                          "main":  [
+                                                       [
+                                                           {
+                                                               "node":  "Boom",
+                                                               "type":  "main",
+                                                               "index":  0
+                                                           }
+                                                       ]
+                                                   ]
+                                      }
+                    }
+}

@@ -1,0 +1,98 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AutomationSpec",
+  "description": "Structured specification parsed from a natural-language automation request. Authored by OpenCode, validated by Test-Spec.ps1.",
+  "type": "object",
+  "required": [
+    "slug", "version", "goal", "trigger", "inputs", "processing",
+    "outputs", "errorHandling", "retryPolicy", "credentialsRequired", "security"
+  ],
+  "properties": {
+    "slug": { "type": "string", "description": "kebab-case id, e.g. news-ai" },
+    "version": { "type": "string", "pattern": "^v[0-9]{3}$", "description": "v001, v002..." },
+    "goal": { "type": "string", "minLength": 10 },
+    "trigger": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "enum": ["manual", "schedule", "webhook", "rss"] },
+        "schedule": { "type": "string", "description": "Required when type=schedule, e.g. 'every 30 minutes' or cron" },
+        "httpMethod": { "enum": ["GET", "POST"] },
+        "path": { "type": "string" },
+        "feedUrl": { "type": "string", "description": "Required when type=rss" }
+      }
+    },
+    "inputs": { "type": "array", "items": { "type": "string" } },
+    "processing": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["step", "action"],
+        "properties": {
+          "step": { "type": "string" },
+          "action": { "type": "string" },
+          "node": { "type": "string", "description": "Suggested n8n node type or template name" }
+        }
+      }
+    },
+    "conditions": { "type": "array", "items": { "type": "string" }, "description": "Branching rules; empty = linear flow" },
+    "externalServices": { "type": "array", "items": { "type": "string" } },
+    "outputs": {
+      "type": "object",
+      "required": ["description"],
+      "properties": {
+        "description": { "type": "string" },
+        "example": { "type": "object" },
+        "storage": { "type": "string" }
+      }
+    },
+    "schedule": { "type": "string" },
+    "errorHandling": {
+      "type": "object",
+      "required": ["onFailure"],
+      "properties": {
+        "onFailure": { "enum": ["stop", "continue", "notify"] },
+        "notifyChannel": { "type": "string" }
+      }
+    },
+    "retryPolicy": {
+      "type": "object",
+      "required": ["maxRetries"],
+      "properties": {
+        "maxRetries": { "type": "integer", "minimum": 0 },
+        "backoff": { "type": "string" }
+      }
+    },
+    "deduplication": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "key": { "type": "string" },
+        "strategy": { "type": "string" }
+      }
+    },
+    "storage": { "type": "string" },
+    "notifications": { "type": "array", "items": { "type": "string" } },
+    "credentialsRequired": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["service", "type", "reason"],
+        "properties": {
+          "service": { "type": "string" },
+          "type": { "type": "string", "description": "n8n credential type, e.g. telegramApi" },
+          "reason": { "type": "string" }
+        }
+      }
+    },
+    "security": {
+      "type": "object",
+      "required": ["dataSentExternally", "sideEffects", "approvalRequired"],
+      "properties": {
+        "dataSentExternally": { "type": "array", "items": { "type": "string" } },
+        "sideEffects": { "type": "array", "items": { "type": "string" } },
+        "approvalRequired": { "type": "boolean" }
+      }
+    }
+  }
+}

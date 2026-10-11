@@ -1,0 +1,70 @@
+{
+    "name":  "Probe Noderef (temp)",
+    "id":  "probe-noderef-01",
+    "active":  false,
+    "nodes":  [
+                  {
+                      "parameters":  {
+
+                                     },
+                      "id":  "q0000000-0000-4000-8000-000000000001",
+                      "name":  "Start",
+                      "type":  "n8n-nodes-base.manualTrigger",
+                      "typeVersion":  1,
+                      "position":  [
+                                       240,
+                                       300
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "return [{ json: { x: 5 } }];"
+                                     },
+                      "id":  "q0000000-0000-4000-8000-000000000002",
+                      "name":  "Node A",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       460,
+                                       300
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "var a = 0; try { a = $(\"Node A\").first().json.x || 0; } catch (e) { a = -1; } return [{ json: { doubled: a * 2 } }];"
+                                     },
+                      "id":  "q0000000-0000-4000-8000-000000000003",
+                      "name":  "Node B",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       680,
+                                       300
+                                   ]
+                  }
+              ],
+    "connections":  {
+                        "Start":  {
+                                      "main":  [
+                                                   [
+                                                       {
+                                                           "node":  "Node A",
+                                                           "type":  "main",
+                                                           "index":  0
+                                                       }
+                                                   ]
+                                               ]
+                                  },
+                        "Node A":  {
+                                       "main":  [
+                                                    [
+                                                        {
+                                                            "node":  "Node B",
+                                                            "type":  "main",
+                                                            "index":  0
+                                                        }
+                                                    ]
+                                                ]
+                                   }
+                    }
+}

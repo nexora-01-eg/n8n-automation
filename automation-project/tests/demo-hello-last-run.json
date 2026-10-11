@@ -1,0 +1,15 @@
+﻿{
+    "workflowId":  "demo-hello-e2e-01",
+    "status":  "success",
+    "lastNode":  "Shape Output",
+    "items":  [
+                  {
+                      "message":  "Hello Nour from Cairo! n8n local automation works.",
+                      "success":  true,
+                      "name":  "Nour",
+                      "city":  "Cairo",
+                      "shouted":  "HELLO NOUR FROM CAIRO! N8N LOCAL AUTOMATION WORKS.",
+                      "processedAt":  "2026-09-17T13:09:46.525+03:00"
+                  }
+              ]
+}

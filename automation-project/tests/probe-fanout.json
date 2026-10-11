@@ -1,0 +1,26 @@
+{
+    "workflowId":  "probe-fanout-01",
+    "status":  "success",
+    "nodes":  {
+                  "Start":  [
+                                {
+
+                                }
+                            ],
+                  "Src":  [
+                              {
+                                  "v":  1
+                              }
+                          ],
+                  "Branch A":  [
+                                   {
+                                       "v":  1
+                                   }
+                               ],
+                  "Branch B":  [
+                                   {
+                                       "v":  1
+                                   }
+                               ]
+              }
+}

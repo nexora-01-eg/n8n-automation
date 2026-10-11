@@ -1,0 +1,116 @@
+{
+    "tenArticles":  [
+                        {
+                            "title":  "New LLM Beats Benchmarks",
+                            "url":  "https://x.test/a1",
+                            "source":  "T",
+                            "publishedAt":  "2026-09-18",
+                            "description":  "A new model tops llm benchmarks."
+                        },
+                        {
+                            "title":  "  NEW llm beats benchmarks! ",
+                            "url":  "https://x.test/a1?utm=x",
+                            "source":  "T",
+                            "publishedAt":  "2026-09-18",
+                            "description":  "Duplicate with different case and tracking param."
+                        },
+                        {
+                            "title":  "Agents Automate Offices",
+                            "url":  "https://x.test/a2",
+                            "source":  "T",
+                            "publishedAt":  "2026-09-18",
+                            "description":  "AI agents handle workflows."
+                        },
+                        {
+                            "title":  "Agents Automate Offices",
+                            "url":  "https://x.test/a2",
+                            "source":  "T",
+                            "publishedAt":  "2026-09-18",
+                            "description":  "Exact duplicate."
+                        },
+                        {
+                            "title":  "Robot Walks Factory",
+                            "url":  "https://x.test/a3",
+                            "source":  "T",
+                            "publishedAt":  "",
+                            "description":  "Humanoid robot news."
+                        },
+                        {
+                            "title":  "Startup Raises $2B",
+                            "url":  "https://x.test/a4?ref=rss#top",
+                            "source":  "T",
+                            "publishedAt":  "2026-09-18",
+                            "description":  "AI startup funding billion."
+                        },
+                        {
+                            "title":  "Startup Raises $2B",
+                            "url":  "https://x.test/a4",
+                            "source":  "T",
+                            "publishedAt":  "2026-09-18",
+                            "description":  "Same story, clean URL."
+                        },
+                        {
+                            "title":  "Football Finals Tonight",
+                            "url":  "https://x.test/a5",
+                            "source":  "T",
+                            "publishedAt":  "2026-09-18",
+                            "description":  "Sports league finals."
+                        },
+                        {
+                            "title":  "EU AI Act Enters Force",
+                            "url":  "https://x.test/a6",
+                            "source":  "T",
+                            "publishedAt":  "2026-09-18",
+                            "description":  "Regulation policy law."
+                        },
+                        {
+                            "title":  "Open Source Weights Drop",
+                            "url":  "https://x.test/a7",
+                            "source":  "T",
+                            "publishedAt":  "2026-09-18",
+                            "description":  "Github release apache license."
+                        }
+                    ],
+    "emptyFeed":  [
+
+                  ],
+    "malformed":  [
+                      {
+                          "source":  "T"
+                      },
+                      {
+                          "title":  "",
+                          "url":  "",
+                          "source":  "T",
+                          "description":  "nothing usable"
+                      },
+                      {
+                          "title":  "Title Only, No URL",
+                          "source":  "T"
+                      },
+                      {
+                          "url":  "https://x.test/only-url",
+                          "source":  "T"
+                      }
+                  ],
+    "errorShaped":  [
+                        {
+                            "source":  "Dead Feed",
+                            "error":  {
+                                          "message":  "getaddrinfo ENOTFOUND no.such.host"
+                                      }
+                        },
+                        {
+                            "title":  "Healthy Item",
+                            "url":  "https://x.test/ok",
+                            "source":  "Dead Feed",
+                            "publishedAt":  "",
+                            "description":  "survivor"
+                        }
+                    ],
+    "sampleRss":  [
+                      {
+                          "data":  "\u003c?xml version=\"1.0\"?\u003e\u003crss version=\"2.0\"\u003e\u003cchannel\u003e\u003ctitle\u003eT\u003c/title\u003e\u003citem\u003e\u003ctitle\u003e\u003c![CDATA[AI \u0026amp; Agents Rise]]\u003e\u003c/title\u003e\u003clink\u003ehttps://x.test/r1\u003c/link\u003e\u003cpubDate\u003eFri, 18 Sep 2026 10:00:00 GMT\u003c/pubDate\u003e\u003cdescription\u003eFirst \u0026lt;b\u0026gt;story\u0026lt;/b\u0026gt;.\u003c/description\u003e\u003cguid\u003ehttps://x.test/r1\u003c/guid\u003e\u003c/item\u003e\u003citem\u003e\u003ctitle\u003ePlain Title\u003c/title\u003e\u003clink\u003ehttps://x.test/r2\u003c/link\u003e\u003cdescription\u003eNo date here.\u003c/description\u003e\u003c/item\u003e\u003citem\u003e\u003ctitle\u003eNo Link Item\u003c/title\u003e\u003cdescription\u003eMissing link.\u003c/description\u003e\u003c/item\u003e\u003c/channel\u003e\u003c/rss\u003e"
+                      }
+                  ]
+}

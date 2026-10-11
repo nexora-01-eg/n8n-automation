@@ -1,0 +1,527 @@
+{
+    "name":  "AI News Pipeline v001",
+    "id":  "ai-news-pipeline-v001",
+    "active":  false,
+    "nodes":  [
+                  {
+                      "parameters":  {
+
+                                     },
+                      "id":  "a1000000-0000-4000-8000-000000000001",
+                      "name":  "Manual Test",
+                      "type":  "n8n-nodes-base.manualTrigger",
+                      "typeVersion":  1,
+                      "position":  [
+                                       240,
+                                       300
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "rule":  {
+                                                      "interval":  [
+                                                                       {
+                                                                           "field":  "minutes",
+                                                                           "minutesInterval":  30
+                                                                       }
+                                                                   ]
+                                                  }
+                                     },
+                      "id":  "a1000000-0000-4000-8000-000000000002",
+                      "name":  "Every 30 Minutes",
+                      "type":  "n8n-nodes-base.scheduleTrigger",
+                      "typeVersion":  1.2,
+                      "position":  [
+                                       240,
+                                       480
+                                   ],
+                      "notes":  " activates only after explicit user approval. Workflow stays inactive until tested."
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "try {\n  return [{ json: {\n    minImportance: 25,\n    storageSubdir: \u0027news-data\u0027,\n    feeds: [\n      { name: \u0027The Guardian AI\u0027, url: \u0027https://www.theguardian.com/technology/artificialintelligenceai/rss\u0027 },\n      { name: \u0027MIT Technology Review\u0027, url: \u0027https://www.technologyreview.com/feed/\u0027 }\n    ],\n    note: \u0027SINGLE EDIT POINT for tunables. Fetch nodes mirror feeds list (see SPEC Note).\u0027\n  } }];\n} catch (err) {\n  console.log(\u0027[config] ERROR: \u0027 + err.message);\n  return [{ json: { _error: true, error: err.message } }];\n}"
+                                     },
+                      "id":  "a1000000-0000-4000-8000-000000000003",
+                      "name":  "Pipeline Config",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       460,
+                                       300
+                                   ],
+                      "settings":  {
+                                       "onError":  "continueRegularOutput"
+                                   }
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "try {\n  const out = [];\n  const now = new Date().toISOString();\n  for (const item of $input.all()) {\n    const j = item.json || {};\n    var hostMap = { \"www.theguardian.com\": \"The Guardian AI\", \"www.technologyreview.com\": \"MIT Technology Review\" };\n    var rawUrl = String(j.link || j.url || j.guid || \"\");\n    var host = rawUrl.split(\"//\").length \u003e 1 ? rawUrl.split(\"//\")[1].split(\"/\")[0].toLowerCase() : \"\";\n    var srcName = (j.source \u0026\u0026 j.source !== \"unknown\") ? j.source : (hostMap[host] || host || \"unknown\");\n    if (j._error || j.error) {\n      const msg = (j.error \u0026\u0026 j.error.message) ? j.error.message : String(j.error || \u0027fetch failed\u0027);\n      console.log(\u0027[normalize] SOURCE ERROR source=\u0027 + (j.source || \u0027unknown\u0027) + \u0027 error=\u0027 + msg);\n      out.push({ json: { source: srcName, error: msg, timestamp: now, _error: true } });\n      continue;\n    }\n    const title = String(j.title || \u0027\u0027).trim();\n    const url = String(j.link || j.url || j.guid || \u0027\u0027).trim();\n    if (!title \u0026\u0026 !url) {\n      console.log(\u0027[normalize] MALFORMED item skipped (no title, no url)\u0027);\n      out.push({ json: { source: srcName, error: \u0027malformed: missing title and url\u0027, timestamp: now, _error: true } });\n      continue;\n    }\n    out.push({ json: {\n      title: title,\n      url: url,\n      source: srcName,\n      publishedAt: String(j.pubDate || j.published || j.updated || j.isoDate || \u0027\u0027),\n      description: String(j.description || j.contentSnippet || j.content || j.summary || \u0027\u0027).slice(0, 2000)\n    } });\n  }\n  console.log(\u0027[normalize] ok=\u0027 + out.filter(o =\u003e !o.json._error).length + \u0027 errors=\u0027 + out.filter(o =\u003e o.json._error).length);\n  return out;\n} catch (err) {\n  console.log(\u0027[normalize] FATAL: \u0027 + err.message);\n  return [{ json: { source: \u0027pipeline\u0027, error: err.message, timestamp: new Date().toISOString(), _error: true } }];\n}"
+                                     },
+                      "id":  "a1000000-0000-4000-8000-000000000009",
+                      "name":  "Normalize",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       1340,
+                                       300
+                                   ],
+                      "settings":  {
+                                       "onError":  "continueRegularOutput"
+                                   }
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "function cyrb53(str, seed) { seed = seed || 0; var h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed; for (var i = 0; i \u003c str.length; i++) { var ch = str.charCodeAt(i); h1 = Math.imul(h1 ^ ch, 2654435761); h2 = Math.imul(h2 ^ ch, 1597334677); } h1 = Math.imul(h1 ^ (h1 \u003e\u003e\u003e 16), 2246822507); h1 ^= Math.imul(h2 ^ (h2 \u003e\u003e\u003e 13), 3266489909); h2 = Math.imul(h2 ^ (h2 \u003e\u003e\u003e 16), 2246822507); h2 ^= Math.imul(h1 ^ (h1 \u003e\u003e\u003e 13), 3266489909); return ((h2 \u003e\u003e\u003e 0).toString(16) + (h1 \u003e\u003e\u003e 0).toString(16)); } try { var seen = {}; var out = []; var dups = 0; for (const item of $input.all()) { var j = item.json || {}; if (j._error) { out.push({ json: j }); continue; } var normTitle = String(j.title || \"\").toLowerCase().replace(/\\s+/g, \" \").replace(/[^a-z0-9 \\u0600-\\u06FF]/g, \"\").trim(); var normUrl = String(j.url || \"\").toLowerCase().split(\"?\")[0].split(\"#\")[0].replace(/\\/$/, \"\"); var fingerprint = cyrb53(normUrl + \"|\" + normTitle); if (seen[fingerprint]) { dups++; continue; } seen[fingerprint] = true; out.push({ json: { title: j.title, url: j.url, source: j.source, publishedAt: j.publishedAt, description: j.description, fingerprint: fingerprint } }); } console.log(\"[dedupe] unique=\" + out.filter(function(o){return !o.json._error;}).length + \" dups=\" + dups); return out; } catch (err) { console.log(\"[dedupe] FATAL: \" + err.message); return [{ json: { source: \"pipeline\", error: err.message, timestamp: new Date().toISOString(), _error: true } }]; }"
+                                     },
+                      "id":  "a1000000-0000-4000-8000-000000000010",
+                      "name":  "Dedupe by Fingerprint",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       1560,
+                                       300
+                                   ],
+                      "settings":  {
+                                       "onError":  "continueRegularOutput"
+                                   }
+                  },
+                  {
+                      "parameters":  {
+                                         "conditions":  {
+                                                            "options":  {
+                                                                            "caseSensitive":  true,
+                                                                            "leftValue":  "",
+                                                                            "typeValidation":  "loose"
+                                                                        },
+                                                            "conditions":  [
+                                                                               {
+                                                                                   "id":  "q1",
+                                                                                   "leftValue":  "={{ $json._error }}",
+                                                                                   "rightValue":  true,
+                                                                                   "operator":  {
+                                                                                                    "type":  "boolean",
+                                                                                                    "operation":  "false"
+                                                                                                }
+                                                                               }
+                                                                           ],
+                                                            "combinator":  "and"
+                                                        },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "a1000000-0000-4000-8000-000000000011",
+                      "name":  "Quality Filter",
+                      "type":  "n8n-nodes-base.if",
+                      "typeVersion":  2.2,
+                      "position":  [
+                                       1780,
+                                       300
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+
+                                     },
+                      "id":  "a1000000-0000-4000-8000-000000000012",
+                      "name":  "Quarantine",
+                      "type":  "n8n-nodes-base.noOp",
+                      "typeVersion":  1,
+                      "position":  [
+                                       1780,
+                                       480
+                                   ],
+                      "notes":  "Malformed items and source errors land here. Visible in executions."
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "try {\n  const RULES = [\n    { cat: \u0027AI Models\u0027, keys: [\u0027model\u0027, \u0027llm\u0027, \u0027gpt\u0027, \u0027claude\u0027, \u0027gemini\u0027, \u0027llama\u0027, \u0027checkpoint\u0027, \u0027weights\u0027, \u0027foundation model\u0027] },\n    { cat: \u0027AI Agents\u0027, keys: [\u0027agent\u0027, \u0027autonomous\u0027, \u0027mcp\u0027, \u0027tool use\u0027, \u0027workflow automation\u0027] },\n    { cat: \u0027Generative AI\u0027, keys: [\u0027image generator\u0027, \u0027video\u0027, \u0027diffusion\u0027, \u0027midjourney\u0027, \u0027sora\u0027, \u0027stable diffusion\u0027, \u0027generator\u0027] },\n    { cat: \u0027AI Coding\u0027, keys: [\u0027code\u0027, \u0027coding\u0027, \u0027copilot\u0027, \u0027cursor\u0027, \u0027programmer\u0027, \u0027developer\u0027, \u0027ide\u0027] },\n    { cat: \u0027Robotics\u0027, keys: [\u0027robot\u0027, \u0027humanoid\u0027, \u0027drone\u0027, \u0027embodied\u0027] },\n    { cat: \u0027AI Business\u0027, keys: [\u0027startup\u0027, \u0027funding\u0027, \u0027billion\u0027, \u0027million\u0027, \u0027market\u0027, \u0027stock\u0027, \u0027enterprise\u0027, \u0027revenue\u0027] },\n    { cat: \u0027Research\u0027, keys: [\u0027paper\u0027, \u0027arxiv\u0027, \u0027study\u0027, \u0027researchers\u0027, \u0027benchmark\u0027, \u0027dataset\u0027] },\n    { cat: \u0027Open Source\u0027, keys: [\u0027open source\u0027, \u0027github\u0027, \u0027hugging face\u0027, \u0027apache\u0027, \u0027mit license\u0027] },\n    { cat: \u0027Regulation\u0027, keys: [\u0027regulation\u0027, \u0027law\u0027, \u0027eu ai act\u0027, \u0027policy\u0027, \u0027copyright\u0027, \u0027safety\u0027, \u0027ban\u0027] }\n  ];\n  const out = [];\n  for (const item of $input.all()) {\n    const j = item.json || {};\n    if (j._error) { out.push({ json: j }); continue; }\n    const text = ((j.title || \u0027\u0027) + \u0027 \u0027 + (j.description || \u0027\u0027)).toLowerCase();\n    let best = { cat: \u0027Other\u0027, hits: 0 };\n    const topics = [];\n    for (const r of RULES) {\n      let hits = 0;\n      for (const k of r.keys) { if (text.includes(k)) { hits++; topics.push(k); } }\n      if (hits \u003e best.hits) { best = { cat: r.cat, hits: hits }; }\n    }\n    const importance = Math.min(100, 25 + best.hits * 15);\n    out.push({ json: { ...j, category: best.cat, importance: importance, topics: topics.slice(0, 5), classifier: \u0027rules-v001 (deterministic, NOT AI-powered)\u0027 } });\n  }\n  console.log(\u0027[classify] classified=\u0027 + out.length);\n  return out;\n} catch (err) {\n  console.log(\u0027[classify] FATAL: \u0027 + err.message);\n  return [{ json: { source: \u0027pipeline\u0027, error: err.message, timestamp: new Date().toISOString(), _error: true } }];\n}"
+                                     },
+                      "id":  "a1000000-0000-4000-8000-000000000013",
+                      "name":  "Classify Rules",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       2000,
+                                       300
+                                   ],
+                      "settings":  {
+                                       "onError":  "continueRegularOutput"
+                                   },
+                      "notes":  "Deterministic rules. Honest label: NOT AI-powered. Swap with AI node after credential approval."
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "try {\n  const out = [];\n  for (const item of $input.all()) {\n    const j = item.json || {};\n    if (j._error) { out.push({ json: j }); continue; }\n    out.push({ json: { ...j, aiMode: \u0027AI_DISABLED\u0027, aiSummary: null, aiModel: null, aiNote: \u0027Attach OpenAI/provider credential in n8n UI to enable. Replace this node body only.\u0027 } });\n  }\n  console.log(\u0027[ai] mode=AI_DISABLED items=\u0027 + out.length);\n  return out;\n} catch (err) {\n  console.log(\u0027[ai] FATAL: \u0027 + err.message);\n  return [{ json: { source: \u0027pipeline\u0027, error: err.message, timestamp: new Date().toISOString(), _error: true } }];\n}"
+                                     },
+                      "id":  "a1000000-0000-4000-8000-000000000014",
+                      "name":  "AI Enrichment AI_DISABLED",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       2220,
+                                       300
+                                   ],
+                      "settings":  {
+                                       "onError":  "continueRegularOutput"
+                                   }
+                  },
+                  {
+                      "parameters":  {
+                                         "assignments":  {
+                                                             "assignments":  [
+                                                                                 {
+                                                                                     "id":  "f01",
+                                                                                     "name":  "title",
+                                                                                     "value":  "={{ $json.title }}",
+                                                                                     "type":  "string"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "f02",
+                                                                                     "name":  "url",
+                                                                                     "value":  "={{ $json.url }}",
+                                                                                     "type":  "string"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "f03",
+                                                                                     "name":  "source",
+                                                                                     "value":  "={{ $json.source }}",
+                                                                                     "type":  "string"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "f04",
+                                                                                     "name":  "publishedAt",
+                                                                                     "value":  "={{ $json.publishedAt }}",
+                                                                                     "type":  "string"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "f05",
+                                                                                     "name":  "description",
+                                                                                     "value":  "={{ $json.description }}",
+                                                                                     "type":  "string"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "f06",
+                                                                                     "name":  "category",
+                                                                                     "value":  "={{ $json.category }}",
+                                                                                     "type":  "string"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "f07",
+                                                                                     "name":  "importance",
+                                                                                     "value":  "={{ $json.importance }}",
+                                                                                     "type":  "number"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "f08",
+                                                                                     "name":  "summary",
+                                                                                     "value":  "={{ $json.description }}",
+                                                                                     "type":  "string"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "f09",
+                                                                                     "name":  "topics",
+                                                                                     "value":  "={{ $json.topics }}",
+                                                                                     "type":  "array"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "f10",
+                                                                                     "name":  "fingerprint",
+                                                                                     "value":  "={{ $json.fingerprint }}",
+                                                                                     "type":  "string"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "f11",
+                                                                                     "name":  "processedAt",
+                                                                                     "value":  "={{ $now }}",
+                                                                                     "type":  "string"
+                                                                                 }
+                                                                             ]
+                                                         },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "a1000000-0000-4000-8000-000000000015",
+                      "name":  "Shape Output",
+                      "type":  "n8n-nodes-base.set",
+                      "typeVersion":  3.4,
+                      "position":  [
+                                       2440,
+                                       300
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "try { var store = $getWorkflowStaticData(\"global\"); var items = []; for (const item of $input.all()) { if (item.json \u0026\u0026 !item.json._error) { items.push(item.json); } } var date = new Date().toISOString().slice(0, 10); store.newsDates = store.newsDates || {}; var day = store.newsDates[date] || { items: [] }; var known = {}; for (const e of day.items) { known[e.fingerprint] = true; } var added = 0; for (const it of items) { if (!known[it.fingerprint]) { known[it.fingerprint] = true; day.items.push(it); added++; } } store.newsDates[date] = day; console.log(\"[store] date=\" + date + \" added=\" + added + \" total=\" + day.items.length); return [{ json: { date: date, newItems: items.length, addedTotal: added, storedTotal: day.items.length, aiMode: \"AI_DISABLED\", runAt: new Date().toISOString() } }]; } catch (err) { console.log(\"[store] FATAL: \" + err.message); return [{ json: { source: \"pipeline\", error: err.message, timestamp: new Date().toISOString(), _error: true } }]; }"
+                                     },
+                      "id":  "a1000000-0000-4000-8000-000000000016",
+                      "name":  "Store Locally",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       2660,
+                                       300
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "try {\n  const s = ($input.first() || {}).json || {};\n  console.log(\u0027[report] date=\u0027 + s.date + \u0027 new=\u0027 + s.newItems + \u0027 total=\u0027 + s.storedTotal);\n  return [{ json: {\n    workflow: \u0027ai-news-pipeline-v001\u0027,\n    runAt: s.runAt || new Date().toISOString(),\n    date: s.date || \u0027\u0027,\n    newItems: s.newItems || 0,\n    storedTotal: s.storedTotal || 0,\n    aiMode: s.aiMode || \u0027AI_DISABLED\u0027,\n    active: false,\n    note: \u0027Scheduled run every 30m pending explicit activation approval.\u0027\n  } }];\n} catch (err) {\n  return [{ json: { workflow: \u0027ai-news-pipeline-v001\u0027, error: err.message } }];\n}"
+                                     },
+                      "id":  "a1000000-0000-4000-8000-000000000017",
+                      "name":  "Build Report",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       2880,
+                                       300
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "content":  "## AI News Pipeline v001\nRSS(Guardian AI, MIT TR) -\u003e Normalize(schema 11 fields) -\u003e Dedupe(sha256 url|title) -\u003e Quality Filter -\u003e Classify RULES (not AI) -\u003e AI_DISABLED stage -\u003e Shape -\u003e Store local (merge by fingerprint) -\u003e Report.\nSchedule 30m present, workflow INACTIVE. No external sends except public RSS GETs. No credentials.",
+                                         "height":  160,
+                                         "width":  420
+                                     },
+                      "id":  "a1000000-0000-4000-8000-000000000018",
+                      "name":  "SPEC Note",
+                      "type":  "n8n-nodes-base.stickyNote",
+                      "typeVersion":  1,
+                      "position":  [
+                                       240,
+                                       80
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "try { var cfg = ($input.first() || {}).json || {}; var feeds = cfg.feeds || []; var out = []; for (const f of feeds) { if (f.url) { out.push({ json: { source: f.name || \"unknown\", url: f.url } }); } } console.log(\"[split] feeds=\" + out.length); return out; } catch (err) { console.log(\"[split] FATAL: \" + err.message); return [{ json: { source: \"pipeline\", error: err.message, timestamp: new Date().toISOString(), _error: true } }]; }"
+                                     },
+                      "id":  "b2000000-0000-4000-8000-000000000001",
+                      "name":  "Split Feeds",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       680,
+                                       300
+                                   ],
+                      "settings":  {
+                                       "onError":  "continueRegularOutput"
+                                   }
+                  },
+                  {
+                      "parameters":  {
+                                         "method":  "GET",
+                                         "url":  "={{ $json.url }}",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "b2000000-0000-4000-8000-000000000002",
+                      "name":  "Fetch Feed",
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.2,
+                      "position":  [
+                                       900,
+                                       300
+                                   ],
+                      "settings":  {
+                                       "onError":  "continueErrorOutput"
+                                   },
+                      "notes":  "HTTP GET of feed URL (n8n auto-parses XML). Errors route to output 2 (Log Fetch Error)."
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "try { var out = []; function clean(s) { s = String(s || \"\"); s = s.replace(/\u003c!\\[CDATA\\[([\\s\\S]*?)\\]\\]\u003e/g, \"$1\"); s = s.replace(/\u0026amp;/g, \"\u0026\").replace(/\u0026lt;/g, \"\u003c\").replace(/\u0026gt;/g, \"\u003e\").replace(/\u0026quot;/g, String.fromCharCode(34)).replace(/\u0026#39;/g, String.fromCharCode(39)); s = s.replace(/\u0026#(\\d+);/g, function(m, n) { return String.fromCharCode(parseInt(n, 10)); }); return s.trim(); } function field(block, tag) { var m = block.match(new RegExp(\"\u003c\" + tag + \"(?:\\\\s[^\u003e]*)?\u003e([\\\\s\\\\S]*?)\u003c\\\\/\" + tag + \"\u003e\", \"i\")); return m ? clean(m[1]) : \"\"; } for (const item of $input.all()) { var j = item.json || {}; if (j._error || j.error) { out.push({ json: j }); continue; } var xml = (typeof j.data === \"string\") ? j.data : \"\"; if (!xml) { console.log(\"[parse] no xml payload, skipping item\"); continue; } var blocks = xml.match(/\u003c(item|entry)(?:\\s[^\u003e]*)?\u003e([\\s\\S]*?)\u003c\\/\\1\u003e/gi) || []; console.log(\"[parse] blocks=\" + blocks.length); for (const b of blocks) { var link = field(b, \"link\") || field(b, \"guid\"); out.push({ json: { title: field(b, \"title\"), link: link, pubDate: field(b, \"pubDate\") || field(b, \"published\") || field(b, \"updated\"), description: (field(b, \"description\") || field(b, \"content:encoded\") || field(b, \"content\") || field(b, \"summary\")).slice(0, 2000), guid: field(b, \"guid\") } }); } } return out; } catch (err) { console.log(\"[parse] FATAL: \" + err.message); return [{ json: { source: \"pipeline\", error: err.message, timestamp: new Date().toISOString(), _error: true } }]; }"
+                                     },
+                      "id":  "d6000000-0000-4000-8000-000000000001",
+                      "name":  "Parse RSS",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       1120,
+                                       300
+                                   ],
+                      "settings":  {
+                                       "onError":  "continueRegularOutput"
+                                   }
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "try { var out = []; for (const item of $input.all()) { var j = item.json || {}; console.log(\"[fetch-error] feed failed: \" + JSON.stringify(j).slice(0, 300)); out.push({ json: { source: \"fetch\", error: (j.error \u0026\u0026 j.error.message) ? j.error.message : \"fetch failed\", timestamp: new Date().toISOString(), _error: true } }); } return out; } catch (err) { return [{ json: { source: \"fetch\", error: err.message } }]; }"
+                                     },
+                      "id":  "d6000000-0000-4000-8000-000000000002",
+                      "name":  "Log Fetch Error",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       1120,
+                                       480
+                                   ]
+                  }
+              ],
+    "connections":  {
+                        "Manual Test":  {
+                                            "main":  [
+                                                         [
+                                                             {
+                                                                 "node":  "Pipeline Config",
+                                                                 "type":  "main",
+                                                                 "index":  0
+                                                             }
+                                                         ]
+                                                     ]
+                                        },
+                        "Every 30 Minutes":  {
+                                                 "main":  [
+                                                              [
+                                                                  {
+                                                                      "node":  "Pipeline Config",
+                                                                      "type":  "main",
+                                                                      "index":  0
+                                                                  }
+                                                              ]
+                                                          ]
+                                             },
+                        "Pipeline Config":  {
+                                                "main":  [
+                                                             [
+                                                                 {
+                                                                     "node":  "Split Feeds",
+                                                                     "type":  "main",
+                                                                     "index":  0
+                                                                 }
+                                                             ]
+                                                         ]
+                                            },
+                        "Split Feeds":  {
+                                            "main":  [
+                                                         [
+                                                             {
+                                                                 "node":  "Fetch Feed",
+                                                                 "type":  "main",
+                                                                 "index":  0
+                                                             }
+                                                         ]
+                                                     ]
+                                        },
+                        "Fetch Feed":  {
+                                           "main":  [
+                                                        [
+                                                            {
+                                                                "node":  "Parse RSS",
+                                                                "type":  "main",
+                                                                "index":  0
+                                                            }
+                                                        ],
+                                                        [
+                                                            {
+                                                                "node":  "Log Fetch Error",
+                                                                "type":  "main",
+                                                                "index":  0
+                                                            }
+                                                        ]
+                                                    ]
+                                       },
+                        "Parse RSS":  {
+                                          "main":  [
+                                                       [
+                                                           {
+                                                               "node":  "Normalize",
+                                                               "type":  "main",
+                                                               "index":  0
+                                                           }
+                                                       ]
+                                                   ]
+                                      },
+                        "Normalize":  {
+                                          "main":  [
+                                                       [
+                                                           {
+                                                               "node":  "Dedupe by Fingerprint",
+                                                               "type":  "main",
+                                                               "index":  0
+                                                           }
+                                                       ]
+                                                   ]
+                                      },
+                        "Dedupe by Fingerprint":  {
+                                                      "main":  [
+                                                                   [
+                                                                       {
+                                                                           "node":  "Quality Filter",
+                                                                           "type":  "main",
+                                                                           "index":  0
+                                                                       }
+                                                                   ]
+                                                               ]
+                                                  },
+                        "Quality Filter":  {
+                                               "main":  [
+                                                            [
+                                                                {
+                                                                    "node":  "Classify Rules",
+                                                                    "type":  "main",
+                                                                    "index":  0
+                                                                }
+                                                            ],
+                                                            [
+                                                                {
+                                                                    "node":  "Quarantine",
+                                                                    "type":  "main",
+                                                                    "index":  0
+                                                                }
+                                                            ]
+                                                        ]
+                                           },
+                        "Classify Rules":  {
+                                               "main":  [
+                                                            [
+                                                                {
+                                                                    "node":  "AI Enrichment AI_DISABLED",
+                                                                    "type":  "main",
+                                                                    "index":  0
+                                                                }
+                                                            ]
+                                                        ]
+                                           },
+                        "AI Enrichment AI_DISABLED":  {
+                                                          "main":  [
+                                                                       [
+                                                                           {
+                                                                               "node":  "Shape Output",
+                                                                               "type":  "main",
+                                                                               "index":  0
+                                                                           }
+                                                                       ]
+                                                                   ]
+                                                      },
+                        "Shape Output":  {
+                                             "main":  [
+                                                          [
+                                                              {
+                                                                  "node":  "Store Locally",
+                                                                  "type":  "main",
+                                                                  "index":  0
+                                                              }
+                                                          ]
+                                                      ]
+                                         },
+                        "Store Locally":  {
+                                              "main":  [
+                                                           [
+                                                               {
+                                                                   "node":  "Build Report",
+                                                                   "type":  "main",
+                                                                   "index":  0
+                                                               }
+                                                           ]
+                                                       ]
+                                          }
+                    },
+    "settings":  {
+                     "executionOrder":  "v1",
+                     "timezone":  "Africa/Cairo",
+                     "saveDataErrorExecution":  "all",
+                     "saveDataSuccessExecution":  "all"
+                 }
+}

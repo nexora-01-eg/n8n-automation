@@ -1,0 +1,30 @@
+{
+    "workflowId":  "probe-ifnum-01",
+    "status":  "success",
+    "nodes":  {
+                  "Start":  [
+                                {
+
+                                }
+                            ],
+                  "Src":  [
+                              {
+                                  "importance":  70
+                              },
+                              {
+                                  "importance":  40
+                              }
+                          ],
+                  "Gate":  [
+
+                           ],
+                  "FalseOut":  [
+                                   {
+                                       "importance":  70
+                                   },
+                                   {
+                                       "importance":  40
+                                   }
+                               ]
+              }
+}

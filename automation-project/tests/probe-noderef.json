@@ -1,0 +1,21 @@
+{
+    "workflowId":  "probe-noderef-01",
+    "status":  "success",
+    "nodes":  {
+                  "Start":  [
+                                {
+
+                                }
+                            ],
+                  "Node A":  [
+                                 {
+                                     "x":  5
+                                 }
+                             ],
+                  "Node B":  [
+                                 {
+                                     "doubled":  10
+                                 }
+                             ]
+              }
+}

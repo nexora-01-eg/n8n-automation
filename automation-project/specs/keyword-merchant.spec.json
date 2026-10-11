@@ -1,0 +1,87 @@
+﻿{
+    "slug":  "keyword-merchant",
+    "version":  "v001",
+    "goal":  "Ø§Ù„ØªØ§Ø¬Ø± ÙŠØ¯Ø®Ù„ Ø§Ù„Ù…Ø¬Ø§Ù„ (Ø´Ù†Ø·ØŒ Ø£Ø­Ø°ÙŠØ©ØŒ Ø£ÙŠ ÙØ¦Ø©) + Ø§Ø³Ù… Ù…ØªØ¬Ø±Ù‡ (Ø§Ø®ØªÙŠØ§Ø±ÙŠ)ØŒ ÙˆØ§Ù„Ù†Ø¸Ø§Ù… ÙŠØ±Ø¬Ø¹ Ø£Ù†Ø³Ø¨ Ø§Ù„ÙƒÙ„Ù…Ø§Øª Ù„Ù‡Ø°Ø§ Ø§Ù„Ù…Ø¬Ø§Ù„: Ø§Ù‚ØªØ±Ø§Ø­Ø§Øª Ø¨Ø­Ø« Ø­Ù‚ÙŠÙ‚ÙŠØ© + ØªÙˆØ³Ø¹Ø§Øª ØªØ¬Ø§Ø±ÙŠØ© + Ø¥Ø²Ø§Ù„Ø© ØªÙƒØ±Ø§Ø± + ØªØ±ØªÙŠØ¨ Ø¨Ø§Ù„Ø£Ù‡Ù…ÙŠØ© Ø§Ù„ØªØ¬Ø§Ø±ÙŠØ©. Ù…Ø­Ù„ÙŠ Ø¨Ø§Ù„ÙƒØ§Ù…Ù„ØŒ Ø¨Ù„Ø§ Ù…ÙØ§ØªÙŠØ­ØŒ Ø¨Ù„Ø§ Ø¥Ø±Ø³Ø§Ù„ Ø®Ø§Ø±Ø¬ÙŠ Ø¥Ù„Ø§ Google Suggest Ø§Ù„Ø¹Ø§Ù….",
+    "trigger":  {
+                    "type":  "manual",
+                    "schedule":  "",
+                    "httpMethod":  "GET",
+                    "path":  "",
+                    "feedUrl":  ""
+                },
+    "inputs":  [
+                   "niche (Ø§Ù„Ù…Ø¬Ø§Ù„ØŒ Ù…Ø«Ø§Ù„: Ø´Ù†Ø·)",
+                   "merchant (Ø§Ø³Ù… Ø§Ù„ØªØ§Ø¬Ø±ØŒ Ø§Ø®ØªÙŠØ§Ø±ÙŠ)"
+               ],
+    "processing":  [
+                       {
+                           "step":  "step1",
+                           "action":  "Ø¬Ù„Ø¨ Ø§Ù‚ØªØ±Ø§Ø­Ø§Øª Google (Ø¹Ø±Ø¨ÙŠ + Ø¥Ù†Ø¬Ù„ÙŠØ²ÙŠ) Ù„Ù„ÙƒÙ„Ù…Ø©",
+                           "node":  "TODO: assigned by OpenCode"
+                       },
+                       {
+                           "step":  "step2",
+                           "action":  "ØªÙˆÙ„ÙŠØ¯ ØªÙˆØ³Ø¹Ø§Øª ØªØ¬Ø§Ø±ÙŠØ© (Ø£Ø³Ø¹Ø§Ø±/Ø´Ø±Ø§Ø¡/Ø£ÙØ¶Ù„/Ù…Ø§Ø±ÙƒØ§Øª/Ù…Ù‚Ø§Ø³Ø§Øª...)",
+                           "node":  "TODO: assigned by OpenCode"
+                       },
+                       {
+                           "step":  "step3",
+                           "action":  "ØªÙˆØ­ÙŠØ¯ Ø¹Ø±Ø¨ÙŠ ÙˆØ¥Ø²Ø§Ù„Ø© ØªÙƒØ±Ø§Ø±",
+                           "node":  "TODO: assigned by OpenCode"
+                       },
+                       {
+                           "step":  "step4",
+                           "action":  "scoring Ø¨Ø§Ù„Ù†ÙŠØ© Ø§Ù„ØªØ¬Ø§Ø±ÙŠØ© ÙˆØ§Ù„ØªØ®ØµØµÙŠØ©",
+                           "node":  "TODO: assigned by OpenCode"
+                       },
+                       {
+                           "step":  "step5",
+                           "action":  "ØªØ´ÙƒÙŠÙ„ Ø§Ù„Ù…Ø®Ø±Ø¬Ø§Øª Ù…Ø±ØªØ¨Ø©",
+                           "node":  "TODO: assigned by OpenCode"
+                       }
+                   ],
+    "conditions":  {
+
+                   },
+    "externalServices":  "Google Suggest (public GET, no auth)",
+    "outputs":  {
+                    "description":  "Ù‚Ø§Ø¦Ù…Ø©: keyword, score, source, lang â€” Ù…Ø±ØªØ¨Ø© ØªÙ†Ø§Ø²Ù„ÙŠØ§Ù‹",
+                    "example":  {
+                                    "keyword":  "",
+                                    "score":  0,
+                                    "source":  "",
+                                    "lang":  ""
+                                },
+                    "storage":  "- (Ù„Ø§ ØªØ®Ø²ÙŠÙ† Ø¯Ø§Ø¦Ù… ÙÙŠ v001 â€” Ø§Ù„Ù…Ø®Ø±Ø¬Ø§Øª Ø¹Ù†Ø¯ Ø§Ù„ØªÙ†ÙÙŠØ°)"
+                },
+    "schedule":  "",
+    "errorHandling":  {
+                          "onFailure":  "continue",
+                          "notifyChannel":  ""
+                      },
+    "retryPolicy":  {
+                        "maxRetries":  1,
+                        "backoff":  "30s"
+                    },
+    "deduplication":  {
+                          "enabled":  false,
+                          "key":  "",
+                          "strategy":  ""
+                      },
+    "storage":  "- (Ù„Ø§ ØªØ®Ø²ÙŠÙ† Ø¯Ø§Ø¦Ù… ÙÙŠ v001 â€” Ø§Ù„Ù…Ø®Ø±Ø¬Ø§Øª Ø¹Ù†Ø¯ Ø§Ù„ØªÙ†ÙÙŠØ°)",
+    "notifications":  {
+
+                      },
+    "credentialsRequired":  [
+
+                            ],
+    "security":  {
+                     "dataSentExternally":  [
+
+                                            ],
+                     "sideEffects":  [
+
+                                     ],
+                     "approvalRequired":  false
+                 }
+}

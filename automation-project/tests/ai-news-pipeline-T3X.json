@@ -1,0 +1,848 @@
+{
+    "name":  "AI News T3X TEMP HTTP500 (do not activate)",
+    "id":  "ai-news-pipeline-T3X",
+    "active":  false,
+    "nodes":  [
+                  {
+                      "parameters":  {
+
+                                     },
+                      "id":  "c2000000-0000-4000-8000-000000000001",
+                      "name":  "Manual Test",
+                      "type":  "n8n-nodes-base.manualTrigger",
+                      "typeVersion":  1,
+                      "position":  [
+                                       240,
+                                       200
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "rule":  {
+                                                      "interval":  [
+                                                                       {
+                                                                           "field":  "minutes",
+                                                                           "minutesInterval":  30
+                                                                       }
+                                                                   ]
+                                                  }
+                                     },
+                      "id":  "c2000000-0000-4000-8000-000000000002",
+                      "name":  "Every 30 Minutes",
+                      "type":  "n8n-nodes-base.scheduleTrigger",
+                      "typeVersion":  1.2,
+                      "position":  [
+                                       240,
+                                       560
+                                   ],
+                      "notes":  "Activates only after explicit user approval. Workflow stays inactive until tested."
+                  },
+                  {
+                      "parameters":  {
+                                         "url":  "https://www.theguardian.com/technology/artificialintelligenceai/rss",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "c2000000-0000-4000-8000-000000000003",
+                      "name":  "Fetch Guardian",
+                      "type":  "n8n-nodes-base.rssFeedRead",
+                      "typeVersion":  1.2,
+                      "position":  [
+                                       460,
+                                       200
+                                   ],
+                      "settings":  {
+                                       "onError":  "continueRegularOutput"
+                                   },
+                      "notes":  "Chain G. Source failure kills only this chain; chain M is unaffected."
+                  },
+                  {
+                      "parameters":  {
+                                         "url":  "https://httpstat.us/500",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "c2000000-0000-4000-8000-000000000004",
+                      "name":  "Fetch MIT",
+                      "type":  "n8n-nodes-base.rssFeedRead",
+                      "typeVersion":  1.2,
+                      "position":  [
+                                       460,
+                                       560
+                                   ],
+                      "settings":  {
+                                       "onError":  "continueRegularOutput"
+                                   },
+                      "notes":  "Chain M. Source failure kills only this chain; chain G is unaffected."
+                  },
+                  {
+                      "parameters":  {
+                                         "assignments":  {
+                                                             "assignments":  [
+                                                                                 {
+                                                                                     "id":  "g01",
+                                                                                     "name":  "source",
+                                                                                     "value":  "The Guardian AI",
+                                                                                     "type":  "string"
+                                                                                 }
+                                                                             ]
+                                                         },
+                                         "options":  {
+
+                                                     },
+                                         "includeOtherFields":  true
+                                     },
+                      "id":  "c2000000-0000-4000-8000-000000000005",
+                      "name":  "Attach G",
+                      "type":  "n8n-nodes-base.set",
+                      "typeVersion":  3.4,
+                      "position":  [
+                                       680,
+                                       200
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "assignments":  {
+                                                             "assignments":  [
+                                                                                 {
+                                                                                     "id":  "m01",
+                                                                                     "name":  "source",
+                                                                                     "value":  "MIT Technology Review",
+                                                                                     "type":  "string"
+                                                                                 }
+                                                                             ]
+                                                         },
+                                         "options":  {
+
+                                                     },
+                                         "includeOtherFields":  true
+                                     },
+                      "id":  "c2000000-0000-4000-8000-000000000006",
+                      "name":  "Attach M",
+                      "type":  "n8n-nodes-base.set",
+                      "typeVersion":  3.4,
+                      "position":  [
+                                       680,
+                                       560
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "try {\n  const out = [];\n  const now = new Date().toISOString();\n  var hostMap = { \"www.theguardian.com\": \"The Guardian AI\", \"www.technologyreview.com\": \"MIT Technology Review\" };\n  for (const item of $input.all()) {\n    const j = item.json || {};\n    if (j._error || j.error) {\n      const msg = (j.error \u0026\u0026 j.error.message) ? j.error.message : String(j.error || \u0027fetch failed\u0027);\n      console.log(\u0027[normalize] SOURCE ERROR source=\u0027 + (j.source || \u0027unknown\u0027) + \u0027 error=\u0027 + msg);\n      out.push({ json: { source: j.source || \u0027unknown\u0027, error: msg, timestamp: now, _error: true } });\n      continue;\n    }\n    const title = String(j.title || \u0027\u0027).trim();\n    const url = String(j.link || j.url || j.guid || \u0027\u0027).trim();\n    var rawUrl = url;\n    var host = rawUrl.split(\u0027//\u0027).length \u003e 1 ? rawUrl.split(\u0027//\u0027)[1].split(\u0027/\u0027)[0].toLowerCase() : \u0027\u0027;\n    var srcName = (j.source \u0026\u0026 j.source !== \u0027unknown\u0027) ? j.source : (hostMap[host] || host || \u0027unknown\u0027);\n    if (!title \u0026\u0026 !url) {\n      console.log(\u0027[normalize] MALFORMED item skipped (no title, no url)\u0027);\n      out.push({ json: { source: srcName, error: \u0027malformed: missing title and url\u0027, timestamp: now, _error: true } });\n      continue;\n    }\n    out.push({ json: {\n      title: title,\n      url: url,\n      source: srcName,\n      publishedAt: String(j.pubDate || j.published || j.updated || j.isoDate || \u0027\u0027),\n      description: String(j.description || j.contentSnippet || j.content || j.summary || \u0027\u0027).slice(0, 2000)\n    } });\n  }\n  console.log(\u0027[normalize] ok=\u0027 + out.filter(o =\u003e !o.json._error).length + \u0027 errors=\u0027 + out.filter(o =\u003e o.json._error).length);\n  return out;\n} catch (err) {\n  console.log(\u0027[normalize] FATAL: \u0027 + err.message);\n  return [{ json: { source: \u0027pipeline\u0027, error: err.message, timestamp: new Date().toISOString(), _error: true } }];\n}"
+                                     },
+                      "id":  "c2000000-0000-4000-8000-000000000007",
+                      "name":  "Normalize G",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       900,
+                                       200
+                                   ],
+                      "settings":  {
+                                       "onError":  "continueRegularOutput"
+                                   }
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "try {\n  const out = [];\n  const now = new Date().toISOString();\n  var hostMap = { \"www.theguardian.com\": \"The Guardian AI\", \"www.technologyreview.com\": \"MIT Technology Review\" };\n  for (const item of $input.all()) {\n    const j = item.json || {};\n    if (j._error || j.error) {\n      const msg = (j.error \u0026\u0026 j.error.message) ? j.error.message : String(j.error || \u0027fetch failed\u0027);\n      console.log(\u0027[normalize] SOURCE ERROR source=\u0027 + (j.source || \u0027unknown\u0027) + \u0027 error=\u0027 + msg);\n      out.push({ json: { source: j.source || \u0027unknown\u0027, error: msg, timestamp: now, _error: true } });\n      continue;\n    }\n    const title = String(j.title || \u0027\u0027).trim();\n    const url = String(j.link || j.url || j.guid || \u0027\u0027).trim();\n    var rawUrl = url;\n    var host = rawUrl.split(\u0027//\u0027).length \u003e 1 ? rawUrl.split(\u0027//\u0027)[1].split(\u0027/\u0027)[0].toLowerCase() : \u0027\u0027;\n    var srcName = (j.source \u0026\u0026 j.source !== \u0027unknown\u0027) ? j.source : (hostMap[host] || host || \u0027unknown\u0027);\n    if (!title \u0026\u0026 !url) {\n      console.log(\u0027[normalize] MALFORMED item skipped (no title, no url)\u0027);\n      out.push({ json: { source: srcName, error: \u0027malformed: missing title and url\u0027, timestamp: now, _error: true } });\n      continue;\n    }\n    out.push({ json: {\n      title: title,\n      url: url,\n      source: srcName,\n      publishedAt: String(j.pubDate || j.published || j.updated || j.isoDate || \u0027\u0027),\n      description: String(j.description || j.contentSnippet || j.content || j.summary || \u0027\u0027).slice(0, 2000)\n    } });\n  }\n  console.log(\u0027[normalize] ok=\u0027 + out.filter(o =\u003e !o.json._error).length + \u0027 errors=\u0027 + out.filter(o =\u003e o.json._error).length);\n  return out;\n} catch (err) {\n  console.log(\u0027[normalize] FATAL: \u0027 + err.message);\n  return [{ json: { source: \u0027pipeline\u0027, error: err.message, timestamp: new Date().toISOString(), _error: true } }];\n}"
+                                     },
+                      "id":  "c2000000-0000-4000-8000-000000000008",
+                      "name":  "Normalize M",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       900,
+                                       560
+                                   ],
+                      "settings":  {
+                                       "onError":  "continueRegularOutput"
+                                   }
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "function cyrb53(str, seed) { seed = seed || 0; var h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed; for (var i = 0; i \u003c str.length; i++) { var ch = str.charCodeAt(i); h1 = Math.imul(h1 ^ ch, 2654435761); h2 = Math.imul(h2 ^ ch, 1597334677); } h1 = Math.imul(h1 ^ (h1 \u003e\u003e\u003e 16), 2246822507); h1 ^= Math.imul(h2 ^ (h2 \u003e\u003e\u003e 13), 3266489909); h2 = Math.imul(h2 ^ (h2 \u003e\u003e\u003e 16), 2246822507); h2 ^= Math.imul(h1 ^ (h1 \u003e\u003e\u003e 13), 3266489909); return ((h2 \u003e\u003e\u003e 0).toString(16) + (h1 \u003e\u003e\u003e 0).toString(16)); } try { var seen = {}; var out = []; var dups = 0; for (const item of $input.all()) { var j = item.json || {}; if (j._error) { out.push({ json: j }); continue; } var normTitle = String(j.title || \u0027\u0027).toLowerCase().replace(/\\s+/g, \u0027 \u0027).replace(/[^a-z0-9 \\u0600-\\u06FF]/g, \u0027\u0027).trim(); var normUrl = String(j.url || \u0027\u0027).toLowerCase().split(\u0027?\u0027)[0].split(\u0027#\u0027)[0].replace(/\\/$/, \u0027\u0027); var fingerprint = cyrb53(normUrl + \u0027|\u0027 + normTitle); if (seen[fingerprint]) { dups++; continue; } seen[fingerprint] = true; out.push({ json: { title: j.title, url: j.url, source: j.source, publishedAt: j.publishedAt, description: j.description, fingerprint: fingerprint } }); } console.log(\u0027[dedupe] unique=\u0027 + out.filter(function(o){return !o.json._error;}).length + \u0027 dups=\u0027 + dups); return out; } catch (err) { console.log(\u0027[dedupe] FATAL: \u0027 + err.message); return [{ json: { source: \u0027pipeline\u0027, error: err.message, timestamp: new Date().toISOString(), _error: true } }]; }"
+                                     },
+                      "id":  "c2000000-0000-4000-8000-000000000009",
+                      "name":  "Dedupe G",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       1120,
+                                       200
+                                   ],
+                      "settings":  {
+                                       "onError":  "continueRegularOutput"
+                                   }
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "function cyrb53(str, seed) { seed = seed || 0; var h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed; for (var i = 0; i \u003c str.length; i++) { var ch = str.charCodeAt(i); h1 = Math.imul(h1 ^ ch, 2654435761); h2 = Math.imul(h2 ^ ch, 1597334677); } h1 = Math.imul(h1 ^ (h1 \u003e\u003e\u003e 16), 2246822507); h1 ^= Math.imul(h2 ^ (h2 \u003e\u003e\u003e 13), 3266489909); h2 = Math.imul(h2 ^ (h2 \u003e\u003e\u003e 16), 2246822507); h2 ^= Math.imul(h1 ^ (h1 \u003e\u003e\u003e 13), 3266489909); return ((h2 \u003e\u003e\u003e 0).toString(16) + (h1 \u003e\u003e\u003e 0).toString(16)); } try { var seen = {}; var out = []; var dups = 0; for (const item of $input.all()) { var j = item.json || {}; if (j._error) { out.push({ json: j }); continue; } var normTitle = String(j.title || \u0027\u0027).toLowerCase().replace(/\\s+/g, \u0027 \u0027).replace(/[^a-z0-9 \\u0600-\\u06FF]/g, \u0027\u0027).trim(); var normUrl = String(j.url || \u0027\u0027).toLowerCase().split(\u0027?\u0027)[0].split(\u0027#\u0027)[0].replace(/\\/$/, \u0027\u0027); var fingerprint = cyrb53(normUrl + \u0027|\u0027 + normTitle); if (seen[fingerprint]) { dups++; continue; } seen[fingerprint] = true; out.push({ json: { title: j.title, url: j.url, source: j.source, publishedAt: j.publishedAt, description: j.description, fingerprint: fingerprint } }); } console.log(\u0027[dedupe] unique=\u0027 + out.filter(function(o){return !o.json._error;}).length + \u0027 dups=\u0027 + dups); return out; } catch (err) { console.log(\u0027[dedupe] FATAL: \u0027 + err.message); return [{ json: { source: \u0027pipeline\u0027, error: err.message, timestamp: new Date().toISOString(), _error: true } }]; }"
+                                     },
+                      "id":  "c2000000-0000-4000-8000-000000000010",
+                      "name":  "Dedupe M",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       1120,
+                                       560
+                                   ],
+                      "settings":  {
+                                       "onError":  "continueRegularOutput"
+                                   }
+                  },
+                  {
+                      "parameters":  {
+                                         "conditions":  {
+                                                            "options":  {
+                                                                            "caseSensitive":  true,
+                                                                            "leftValue":  "",
+                                                                            "typeValidation":  "loose"
+                                                                        },
+                                                            "conditions":  [
+                                                                               {
+                                                                                   "id":  "qg1",
+                                                                                   "leftValue":  "={{ $json._error }}",
+                                                                                   "rightValue":  true,
+                                                                                   "operator":  {
+                                                                                                    "type":  "boolean",
+                                                                                                    "operation":  "false"
+                                                                                                }
+                                                                               }
+                                                                           ],
+                                                            "combinator":  "and"
+                                                        },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "c2000000-0000-4000-8000-000000000011",
+                      "name":  "Filter G",
+                      "type":  "n8n-nodes-base.if",
+                      "typeVersion":  2.2,
+                      "position":  [
+                                       1340,
+                                       200
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "conditions":  {
+                                                            "options":  {
+                                                                            "caseSensitive":  true,
+                                                                            "leftValue":  "",
+                                                                            "typeValidation":  "loose"
+                                                                        },
+                                                            "conditions":  [
+                                                                               {
+                                                                                   "id":  "qm1",
+                                                                                   "leftValue":  "={{ $json._error }}",
+                                                                                   "rightValue":  true,
+                                                                                   "operator":  {
+                                                                                                    "type":  "boolean",
+                                                                                                    "operation":  "false"
+                                                                                                }
+                                                                               }
+                                                                           ],
+                                                            "combinator":  "and"
+                                                        },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "c2000000-0000-4000-8000-000000000012",
+                      "name":  "Filter M",
+                      "type":  "n8n-nodes-base.if",
+                      "typeVersion":  2.2,
+                      "position":  [
+                                       1340,
+                                       560
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+
+                                     },
+                      "id":  "c2000000-0000-4000-8000-000000000013",
+                      "name":  "Quarantine G",
+                      "type":  "n8n-nodes-base.noOp",
+                      "typeVersion":  1,
+                      "position":  [
+                                       1340,
+                                       380
+                                   ],
+                      "notes":  "Chain G errors land here. Visible in executions."
+                  },
+                  {
+                      "parameters":  {
+
+                                     },
+                      "id":  "c2000000-0000-4000-8000-000000000014",
+                      "name":  "Quarantine M",
+                      "type":  "n8n-nodes-base.noOp",
+                      "typeVersion":  1,
+                      "position":  [
+                                       1340,
+                                       740
+                                   ],
+                      "notes":  "Chain M errors land here. Visible in executions."
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "try {\n  const RULES = [\n    { cat: \u0027AI Models\u0027, keys: [\u0027model\u0027, \u0027llm\u0027, \u0027gpt\u0027, \u0027claude\u0027, \u0027gemini\u0027, \u0027llama\u0027, \u0027checkpoint\u0027, \u0027weights\u0027, \u0027foundation model\u0027] },\n    { cat: \u0027AI Agents\u0027, keys: [\u0027agent\u0027, \u0027autonomous\u0027, \u0027mcp\u0027, \u0027tool use\u0027, \u0027workflow automation\u0027] },\n    { cat: \u0027Generative AI\u0027, keys: [\u0027image generator\u0027, \u0027video\u0027, \u0027diffusion\u0027, \u0027midjourney\u0027, \u0027sora\u0027, \u0027stable diffusion\u0027, \u0027generator\u0027] },\n    { cat: \u0027AI Coding\u0027, keys: [\u0027code\u0027, \u0027coding\u0027, \u0027copilot\u0027, \u0027cursor\u0027, \u0027programmer\u0027, \u0027developer\u0027, \u0027ide\u0027] },\n    { cat: \u0027Robotics\u0027, keys: [\u0027robot\u0027, \u0027humanoid\u0027, \u0027drone\u0027, \u0027embodied\u0027] },\n    { cat: \u0027AI Business\u0027, keys: [\u0027startup\u0027, \u0027funding\u0027, \u0027billion\u0027, \u0027million\u0027, \u0027market\u0027, \u0027stock\u0027, \u0027enterprise\u0027, \u0027revenue\u0027] },\n    { cat: \u0027Research\u0027, keys: [\u0027paper\u0027, \u0027arxiv\u0027, \u0027study\u0027, \u0027researchers\u0027, \u0027benchmark\u0027, \u0027dataset\u0027] },\n    { cat: \u0027Open Source\u0027, keys: [\u0027open source\u0027, \u0027github\u0027, \u0027hugging face\u0027, \u0027apache\u0027, \u0027mit license\u0027] },\n    { cat: \u0027Regulation\u0027, keys: [\u0027regulation\u0027, \u0027law\u0027, \u0027eu ai act\u0027, \u0027policy\u0027, \u0027copyright\u0027, \u0027safety\u0027, \u0027ban\u0027] }\n  ];\n  const out = [];\n  for (const item of $input.all()) {\n    const j = item.json || {};\n    if (j._error) { out.push({ json: j }); continue; }\n    const text = ((j.title || \u0027\u0027) + \u0027 \u0027 + (j.description || \u0027\u0027)).toLowerCase();\n    let best = { cat: \u0027Other\u0027, hits: 0 };\n    const topics = [];\n    for (const r of RULES) {\n      let hits = 0;\n      for (const k of r.keys) { if (text.includes(k)) { hits++; topics.push(k); } }\n      if (hits \u003e best.hits) { best = { cat: r.cat, hits: hits }; }\n    }\n    const importance = Math.min(100, 25 + best.hits * 15);\n    out.push({ json: { ...j, category: best.cat, importance: importance, topics: topics.slice(0, 5), classifier: \u0027rules-v001 (deterministic, NOT AI-powered)\u0027 } });\n  }\n  console.log(\u0027[classify] classified=\u0027 + out.length);\n  return out;\n} catch (err) {\n  console.log(\u0027[classify] FATAL: \u0027 + err.message);\n  return [{ json: { source: \u0027pipeline\u0027, error: err.message, timestamp: new Date().toISOString(), _error: true } }];\n}"
+                                     },
+                      "id":  "c2000000-0000-4000-8000-000000000015",
+                      "name":  "Classify G",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       1560,
+                                       200
+                                   ],
+                      "settings":  {
+                                       "onError":  "continueRegularOutput"
+                                   },
+                      "notes":  "Deterministic rules. Honest label: NOT AI-powered."
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "try {\n  const RULES = [\n    { cat: \u0027AI Models\u0027, keys: [\u0027model\u0027, \u0027llm\u0027, \u0027gpt\u0027, \u0027claude\u0027, \u0027gemini\u0027, \u0027llama\u0027, \u0027checkpoint\u0027, \u0027weights\u0027, \u0027foundation model\u0027] },\n    { cat: \u0027AI Agents\u0027, keys: [\u0027agent\u0027, \u0027autonomous\u0027, \u0027mcp\u0027, \u0027tool use\u0027, \u0027workflow automation\u0027] },\n    { cat: \u0027Generative AI\u0027, keys: [\u0027image generator\u0027, \u0027video\u0027, \u0027diffusion\u0027, \u0027midjourney\u0027, \u0027sora\u0027, \u0027stable diffusion\u0027, \u0027generator\u0027] },\n    { cat: \u0027AI Coding\u0027, keys: [\u0027code\u0027, \u0027coding\u0027, \u0027copilot\u0027, \u0027cursor\u0027, \u0027programmer\u0027, \u0027developer\u0027, \u0027ide\u0027] },\n    { cat: \u0027Robotics\u0027, keys: [\u0027robot\u0027, \u0027humanoid\u0027, \u0027drone\u0027, \u0027embodied\u0027] },\n    { cat: \u0027AI Business\u0027, keys: [\u0027startup\u0027, \u0027funding\u0027, \u0027billion\u0027, \u0027million\u0027, \u0027market\u0027, \u0027stock\u0027, \u0027enterprise\u0027, \u0027revenue\u0027] },\n    { cat: \u0027Research\u0027, keys: [\u0027paper\u0027, \u0027arxiv\u0027, \u0027study\u0027, \u0027researchers\u0027, \u0027benchmark\u0027, \u0027dataset\u0027] },\n    { cat: \u0027Open Source\u0027, keys: [\u0027open source\u0027, \u0027github\u0027, \u0027hugging face\u0027, \u0027apache\u0027, \u0027mit license\u0027] },\n    { cat: \u0027Regulation\u0027, keys: [\u0027regulation\u0027, \u0027law\u0027, \u0027eu ai act\u0027, \u0027policy\u0027, \u0027copyright\u0027, \u0027safety\u0027, \u0027ban\u0027] }\n  ];\n  const out = [];\n  for (const item of $input.all()) {\n    const j = item.json || {};\n    if (j._error) { out.push({ json: j }); continue; }\n    const text = ((j.title || \u0027\u0027) + \u0027 \u0027 + (j.description || \u0027\u0027)).toLowerCase();\n    let best = { cat: \u0027Other\u0027, hits: 0 };\n    const topics = [];\n    for (const r of RULES) {\n      let hits = 0;\n      for (const k of r.keys) { if (text.includes(k)) { hits++; topics.push(k); } }\n      if (hits \u003e best.hits) { best = { cat: r.cat, hits: hits }; }\n    }\n    const importance = Math.min(100, 25 + best.hits * 15);\n    out.push({ json: { ...j, category: best.cat, importance: importance, topics: topics.slice(0, 5), classifier: \u0027rules-v001 (deterministic, NOT AI-powered)\u0027 } });\n  }\n  console.log(\u0027[classify] classified=\u0027 + out.length);\n  return out;\n} catch (err) {\n  console.log(\u0027[classify] FATAL: \u0027 + err.message);\n  return [{ json: { source: \u0027pipeline\u0027, error: err.message, timestamp: new Date().toISOString(), _error: true } }];\n}"
+                                     },
+                      "id":  "c2000000-0000-4000-8000-000000000016",
+                      "name":  "Classify M",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       1560,
+                                       560
+                                   ],
+                      "settings":  {
+                                       "onError":  "continueRegularOutput"
+                                   },
+                      "notes":  "Deterministic rules. Honest label: NOT AI-powered."
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "try {\n  const out = [];\n  for (const item of $input.all()) {\n    const j = item.json || {};\n    if (j._error) { out.push({ json: j }); continue; }\n    out.push({ json: { ...j, aiMode: \u0027AI_DISABLED\u0027, aiSummary: null, aiModel: null, aiNote: \u0027Attach provider credential in n8n UI to enable. Replace this node body only.\u0027 } });\n  }\n  console.log(\u0027[ai] mode=AI_DISABLED items=\u0027 + out.length);\n  return out;\n} catch (err) {\n  console.log(\u0027[ai] FATAL: \u0027 + err.message);\n  return [{ json: { source: \u0027pipeline\u0027, error: err.message, timestamp: new Date().toISOString(), _error: true } }];\n}"
+                                     },
+                      "id":  "c2000000-0000-4000-8000-000000000017",
+                      "name":  "AI G",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       1780,
+                                       200
+                                   ],
+                      "settings":  {
+                                       "onError":  "continueRegularOutput"
+                                   }
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "try {\n  const out = [];\n  for (const item of $input.all()) {\n    const j = item.json || {};\n    if (j._error) { out.push({ json: j }); continue; }\n    out.push({ json: { ...j, aiMode: \u0027AI_DISABLED\u0027, aiSummary: null, aiModel: null, aiNote: \u0027Attach provider credential in n8n UI to enable. Replace this node body only.\u0027 } });\n  }\n  console.log(\u0027[ai] mode=AI_DISABLED items=\u0027 + out.length);\n  return out;\n} catch (err) {\n  console.log(\u0027[ai] FATAL: \u0027 + err.message);\n  return [{ json: { source: \u0027pipeline\u0027, error: err.message, timestamp: new Date().toISOString(), _error: true } }];\n}"
+                                     },
+                      "id":  "c2000000-0000-4000-8000-000000000018",
+                      "name":  "AI M",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       1780,
+                                       560
+                                   ],
+                      "settings":  {
+                                       "onError":  "continueRegularOutput"
+                                   }
+                  },
+                  {
+                      "parameters":  {
+                                         "assignments":  {
+                                                             "assignments":  [
+                                                                                 {
+                                                                                     "id":  "g01",
+                                                                                     "name":  "title",
+                                                                                     "value":  "={{ $json.title }}",
+                                                                                     "type":  "string"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "g02",
+                                                                                     "name":  "url",
+                                                                                     "value":  "={{ $json.url }}",
+                                                                                     "type":  "string"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "g03",
+                                                                                     "name":  "source",
+                                                                                     "value":  "={{ $json.source }}",
+                                                                                     "type":  "string"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "g04",
+                                                                                     "name":  "publishedAt",
+                                                                                     "value":  "={{ $json.publishedAt }}",
+                                                                                     "type":  "string"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "g05",
+                                                                                     "name":  "description",
+                                                                                     "value":  "={{ $json.description }}",
+                                                                                     "type":  "string"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "g06",
+                                                                                     "name":  "category",
+                                                                                     "value":  "={{ $json.category }}",
+                                                                                     "type":  "string"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "g07",
+                                                                                     "name":  "importance",
+                                                                                     "value":  "={{ $json.importance }}",
+                                                                                     "type":  "number"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "g08",
+                                                                                     "name":  "summary",
+                                                                                     "value":  "={{ $json.description }}",
+                                                                                     "type":  "string"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "g09",
+                                                                                     "name":  "topics",
+                                                                                     "value":  "={{ $json.topics }}",
+                                                                                     "type":  "array"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "g10",
+                                                                                     "name":  "fingerprint",
+                                                                                     "value":  "={{ $json.fingerprint }}",
+                                                                                     "type":  "string"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "g11",
+                                                                                     "name":  "processedAt",
+                                                                                     "value":  "={{ $now }}",
+                                                                                     "type":  "string"
+                                                                                 }
+                                                                             ]
+                                                         },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "c2000000-0000-4000-8000-000000000019",
+                      "name":  "Shape G",
+                      "type":  "n8n-nodes-base.set",
+                      "typeVersion":  3.4,
+                      "position":  [
+                                       2000,
+                                       200
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "assignments":  {
+                                                             "assignments":  [
+                                                                                 {
+                                                                                     "id":  "m01",
+                                                                                     "name":  "title",
+                                                                                     "value":  "={{ $json.title }}",
+                                                                                     "type":  "string"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "m02",
+                                                                                     "name":  "url",
+                                                                                     "value":  "={{ $json.url }}",
+                                                                                     "type":  "string"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "m03",
+                                                                                     "name":  "source",
+                                                                                     "value":  "={{ $json.source }}",
+                                                                                     "type":  "string"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "m04",
+                                                                                     "name":  "publishedAt",
+                                                                                     "value":  "={{ $json.publishedAt }}",
+                                                                                     "type":  "string"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "m05",
+                                                                                     "name":  "description",
+                                                                                     "value":  "={{ $json.description }}",
+                                                                                     "type":  "string"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "m06",
+                                                                                     "name":  "category",
+                                                                                     "value":  "={{ $json.category }}",
+                                                                                     "type":  "string"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "m07",
+                                                                                     "name":  "importance",
+                                                                                     "value":  "={{ $json.importance }}",
+                                                                                     "type":  "number"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "m08",
+                                                                                     "name":  "summary",
+                                                                                     "value":  "={{ $json.description }}",
+                                                                                     "type":  "string"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "m09",
+                                                                                     "name":  "topics",
+                                                                                     "value":  "={{ $json.topics }}",
+                                                                                     "type":  "array"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "m10",
+                                                                                     "name":  "fingerprint",
+                                                                                     "value":  "={{ $json.fingerprint }}",
+                                                                                     "type":  "string"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "m11",
+                                                                                     "name":  "processedAt",
+                                                                                     "value":  "={{ $now }}",
+                                                                                     "type":  "string"
+                                                                                 }
+                                                                             ]
+                                                         },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "c2000000-0000-4000-8000-000000000020",
+                      "name":  "Shape M",
+                      "type":  "n8n-nodes-base.set",
+                      "typeVersion":  3.4,
+                      "position":  [
+                                       2000,
+                                       560
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "try {\n  var store = $getWorkflowStaticData(\u0027global\u0027);\n  var items = [];\n  for (const item of $input.all()) { if (item.json \u0026\u0026 !item.json._error) { items.push(item.json); } }\n  var date = new Date().toISOString().slice(0, 10);\n  store.newsDates = store.newsDates || {};\n  var day = store.newsDates[date] || { items: [] };\n  var known = {};\n  for (const e of day.items) { known[e.fingerprint] = true; }\n  var added = 0;\n  for (const it of items) { if (!known[it.fingerprint]) { known[it.fingerprint] = true; day.items.push(it); added++; } }\n  store.newsDates[date] = day;\n  console.log(\u0027[store-G] date=\u0027 + date + \u0027 added=\u0027 + added + \u0027 total=\u0027 + day.items.length);\n  return [{ json: { chain: \u0027guardian\u0027, date: date, chainNew: items.length, addedTotal: added, storedTotal: day.items.length, aiMode: \u0027AI_DISABLED\u0027, runAt: new Date().toISOString() } }];\n} catch (err) {\n  console.log(\u0027[store-G] FATAL: \u0027 + err.message);\n  return [{ json: { chain: \u0027guardian\u0027, source: \u0027pipeline\u0027, error: err.message, timestamp: new Date().toISOString(), _error: true } }];\n}"
+                                     },
+                      "id":  "c2000000-0000-4000-8000-000000000021",
+                      "name":  "Store G",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       2220,
+                                       200
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "try {\n  var store = $getWorkflowStaticData(\u0027global\u0027);\n  var items = [];\n  for (const item of $input.all()) { if (item.json \u0026\u0026 !item.json._error) { items.push(item.json); } }\n  var date = new Date().toISOString().slice(0, 10);\n  store.newsDates = store.newsDates || {};\n  var day = store.newsDates[date] || { items: [] };\n  var known = {};\n  for (const e of day.items) { known[e.fingerprint] = true; }\n  var added = 0;\n  for (const it of items) { if (!known[it.fingerprint]) { known[it.fingerprint] = true; day.items.push(it); added++; } }\n  store.newsDates[date] = day;\n  console.log(\u0027[store-M] date=\u0027 + date + \u0027 added=\u0027 + added + \u0027 total=\u0027 + day.items.length);\n  return [{ json: { chain: \u0027mit\u0027, date: date, chainNew: items.length, addedTotal: added, storedTotal: day.items.length, aiMode: \u0027AI_DISABLED\u0027, runAt: new Date().toISOString() } }];\n} catch (err) {\n  console.log(\u0027[store-M] FATAL: \u0027 + err.message);\n  return [{ json: { chain: \u0027mit\u0027, source: \u0027pipeline\u0027, error: err.message, timestamp: new Date().toISOString(), _error: true } }];\n}"
+                                     },
+                      "id":  "c2000000-0000-4000-8000-000000000022",
+                      "name":  "Store M",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       2220,
+                                       560
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "try {\n  var s = ($input.first() || {}).json || {};\n  var store = $getWorkflowStaticData(\u0027global\u0027);\n  var total = 0;\n  var dates = store.newsDates || {};\n  for (var d in dates) { total += ((dates[d] || {}).items || []).length; }\n  return [{ json: { workflow: \u0027ai-news-pipeline-v002\u0027, chain: \u0027guardian\u0027, chainStatus: s._error ? \u0027failed\u0027 : \u0027success\u0027, sourcesTotal: 2, chainNew: s.chainNew || 0, storedTotal: total, quarantined: \u0027see executions UI\u0027, aiMode: \u0027AI_DISABLED\u0027, runAt: new Date().toISOString(), error: s.error || null } }];\n} catch (err) {\n  return [{ json: { workflow: \u0027ai-news-pipeline-v002\u0027, chain: \u0027guardian\u0027, chainStatus: \u0027report-error\u0027, error: err.message } }];\n}"
+                                     },
+                      "id":  "c2000000-0000-4000-8000-000000000023",
+                      "name":  "Report G",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       2440,
+                                       200
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "try {\n  var s = ($input.first() || {}).json || {};\n  var store = $getWorkflowStaticData(\u0027global\u0027);\n  var total = 0;\n  var dates = store.newsDates || {};\n  for (var d in dates) { total += ((dates[d] || {}).items || []).length; }\n  return [{ json: { workflow: \u0027ai-news-pipeline-v002\u0027, chain: \u0027mit\u0027, chainStatus: \u0027success\u0027, sourcesTotal: 2, chainNew: s.chainNew || 0, storedTotal: total, quarantined: \u0027see executions UI\u0027, aiMode: \u0027AI_DISABLED\u0027, runAt: new Date().toISOString(), error: s.error || null } }];\n} catch (err) {\n  return [{ json: { workflow: \u0027ai-news-pipeline-v002\u0027, chain: \u0027mit\u0027, chainStatus: \u0027report-error\u0027, error: err.message } }];\n}"
+                                     },
+                      "id":  "c2000000-0000-4000-8000-000000000024",
+                      "name":  "Report M",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       2440,
+                                       560
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "content":  "## AI News Pipeline v002 — dual independent chains, shared static store.\nChain G (Guardian) and Chain M (MIT) share NOTHING except the static store.\nA dead source kills only its own chain; the sibling stores + reports normally.\nSchedule 30m present, workflow INACTIVE. No external sends except public RSS GETs. No credentials.",
+                                         "height":  160,
+                                         "width":  420
+                                     },
+                      "id":  "c2000000-0000-4000-8000-000000000025",
+                      "name":  "SPEC Note",
+                      "type":  "n8n-nodes-base.stickyNote",
+                      "typeVersion":  1,
+                      "position":  [
+                                       240,
+                                       740
+                                   ]
+                  }
+              ],
+    "connections":  {
+                        "Manual Test":  {
+                                            "main":  [
+                                                         [
+                                                             {
+                                                                 "node":  "Fetch Guardian",
+                                                                 "type":  "main",
+                                                                 "index":  0
+                                                             },
+                                                             {
+                                                                 "node":  "Fetch MIT",
+                                                                 "type":  "main",
+                                                                 "index":  0
+                                                             }
+                                                         ]
+                                                     ]
+                                        },
+                        "Every 30 Minutes":  {
+                                                 "main":  [
+                                                              [
+                                                                  {
+                                                                      "node":  "Fetch Guardian",
+                                                                      "type":  "main",
+                                                                      "index":  0
+                                                                  },
+                                                                  {
+                                                                      "node":  "Fetch MIT",
+                                                                      "type":  "main",
+                                                                      "index":  0
+                                                                  }
+                                                              ]
+                                                          ]
+                                             },
+                        "Fetch Guardian":  {
+                                               "main":  [
+                                                            [
+                                                                {
+                                                                    "node":  "Attach G",
+                                                                    "type":  "main",
+                                                                    "index":  0
+                                                                }
+                                                            ]
+                                                        ]
+                                           },
+                        "Fetch MIT":  {
+                                          "main":  [
+                                                       [
+                                                           {
+                                                               "node":  "Attach M",
+                                                               "type":  "main",
+                                                               "index":  0
+                                                           }
+                                                       ]
+                                                   ]
+                                      },
+                        "Attach G":  {
+                                         "main":  [
+                                                      [
+                                                          {
+                                                              "node":  "Normalize G",
+                                                              "type":  "main",
+                                                              "index":  0
+                                                          }
+                                                      ]
+                                                  ]
+                                     },
+                        "Attach M":  {
+                                         "main":  [
+                                                      [
+                                                          {
+                                                              "node":  "Normalize M",
+                                                              "type":  "main",
+                                                              "index":  0
+                                                          }
+                                                      ]
+                                                  ]
+                                     },
+                        "Normalize G":  {
+                                            "main":  [
+                                                         [
+                                                             {
+                                                                 "node":  "Dedupe G",
+                                                                 "type":  "main",
+                                                                 "index":  0
+                                                             }
+                                                         ]
+                                                     ]
+                                        },
+                        "Normalize M":  {
+                                            "main":  [
+                                                         [
+                                                             {
+                                                                 "node":  "Dedupe M",
+                                                                 "type":  "main",
+                                                                 "index":  0
+                                                             }
+                                                         ]
+                                                     ]
+                                        },
+                        "Dedupe G":  {
+                                         "main":  [
+                                                      [
+                                                          {
+                                                              "node":  "Filter G",
+                                                              "type":  "main",
+                                                              "index":  0
+                                                          }
+                                                      ]
+                                                  ]
+                                     },
+                        "Dedupe M":  {
+                                         "main":  [
+                                                      [
+                                                          {
+                                                              "node":  "Filter M",
+                                                              "type":  "main",
+                                                              "index":  0
+                                                          }
+                                                      ]
+                                                  ]
+                                     },
+                        "Filter G":  {
+                                         "main":  [
+                                                      [
+                                                          {
+                                                              "node":  "Classify G",
+                                                              "type":  "main",
+                                                              "index":  0
+                                                          }
+                                                      ],
+                                                      [
+                                                          {
+                                                              "node":  "Quarantine G",
+                                                              "type":  "main",
+                                                              "index":  0
+                                                          }
+                                                      ]
+                                                  ]
+                                     },
+                        "Filter M":  {
+                                         "main":  [
+                                                      [
+                                                          {
+                                                              "node":  "Classify M",
+                                                              "type":  "main",
+                                                              "index":  0
+                                                          }
+                                                      ],
+                                                      [
+                                                          {
+                                                              "node":  "Quarantine M",
+                                                              "type":  "main",
+                                                              "index":  0
+                                                          }
+                                                      ]
+                                                  ]
+                                     },
+                        "Classify G":  {
+                                           "main":  [
+                                                        [
+                                                            {
+                                                                "node":  "AI G",
+                                                                "type":  "main",
+                                                                "index":  0
+                                                            }
+                                                        ]
+                                                    ]
+                                       },
+                        "Classify M":  {
+                                           "main":  [
+                                                        [
+                                                            {
+                                                                "node":  "AI M",
+                                                                "type":  "main",
+                                                                "index":  0
+                                                            }
+                                                        ]
+                                                    ]
+                                       },
+                        "AI G":  {
+                                     "main":  [
+                                                  [
+                                                      {
+                                                          "node":  "Shape G",
+                                                          "type":  "main",
+                                                          "index":  0
+                                                      }
+                                                  ]
+                                              ]
+                                 },
+                        "AI M":  {
+                                     "main":  [
+                                                  [
+                                                      {
+                                                          "node":  "Shape M",
+                                                          "type":  "main",
+                                                          "index":  0
+                                                      }
+                                                  ]
+                                              ]
+                                 },
+                        "Shape G":  {
+                                        "main":  [
+                                                     [
+                                                         {
+                                                             "node":  "Store G",
+                                                             "type":  "main",
+                                                             "index":  0
+                                                         }
+                                                     ]
+                                                 ]
+                                    },
+                        "Shape M":  {
+                                        "main":  [
+                                                     [
+                                                         {
+                                                             "node":  "Store M",
+                                                             "type":  "main",
+                                                             "index":  0
+                                                         }
+                                                     ]
+                                                 ]
+                                    },
+                        "Store G":  {
+                                        "main":  [
+                                                     [
+                                                         {
+                                                             "node":  "Report G",
+                                                             "type":  "main",
+                                                             "index":  0
+                                                         }
+                                                     ]
+                                                 ]
+                                    },
+                        "Store M":  {
+                                        "main":  [
+                                                     [
+                                                         {
+                                                             "node":  "Report M",
+                                                             "type":  "main",
+                                                             "index":  0
+                                                         }
+                                                     ]
+                                                 ]
+                                    }
+                    },
+    "settings":  {
+                     "executionOrder":  "v1",
+                     "timezone":  "Africa/Cairo",
+                     "saveDataErrorExecution":  "all",
+                     "saveDataSuccessExecution":  "all"
+                 }
+}

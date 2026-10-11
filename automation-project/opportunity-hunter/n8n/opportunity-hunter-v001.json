@@ -1,0 +1,76 @@
+{
+  "name": "Opportunity Hunter v001",
+  "id": "opportunity-hunter-v001",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "d1000000-0000-4000-8000-000000000001",
+      "name": "Manual Run",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "hours", "hoursInterval": 4 }] }
+      },
+      "id": "d1000000-0000-4000-8000-000000000002",
+      "name": "Every 4 Hours",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 480],
+      "notes": "Activates only after explicit user approval. Workflow stays inactive until reviewed."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8091/api/run",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={}",
+        "options": { "timeout": 600000 }
+      },
+      "id": "d1000000-0000-4000-8000-000000000003",
+      "name": "Trigger Collection",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 300],
+      "settings": { "onError": "continueRegularOutput" },
+      "notes": "Thin orchestrator: backend owns fetch/normalize/dedupe/classify/store. Single implementation, no logic duplication."
+    },
+    {
+      "parameters": {
+        "jsCode": "try {\n  const j = ($input.first() || {}).json || {};\n  console.log('[oh] run=' + j.run_id + ' status=' + j.status + ' found=' + j.found + ' added=' + j.added);\n  return [{ json: { workflow: 'opportunity-hunter-v001', run_id: j.run_id || null, status: j.status || 'unknown', found: j.found || 0, added: j.added || 0, dups: j.dups || 0, errors: j.errors || 0, finished_at: j.finished_at || null } }];\n} catch (err) {\n  console.log('[oh] REPORT ERROR: ' + err.message);\n  return [{ json: { workflow: 'opportunity-hunter-v001', status: 'report-error', error: err.message } }];\n}"
+      },
+      "id": "d1000000-0000-4000-8000-000000000004",
+      "name": "Shape Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "content": "## Opportunity Hunter v001 (thin orchestrator)\nTriggers (manual + 4h schedule, INACTIVE) -> POST backend /api/run -> report.\nAll pipeline logic lives in backend/ (single implementation). Dashboard: http://localhost:8091",
+        "height": 140,
+        "width": 400
+      },
+      "id": "d1000000-0000-4000-8000-000000000005",
+      "name": "SPEC Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [240, 80]
+    }
+  ],
+  "connections": {
+    "Manual Run": { "main": [[{ "node": "Trigger Collection", "type": "main", "index": 0 }]] },
+    "Every 4 Hours": { "main": [[{ "node": "Trigger Collection", "type": "main", "index": 0 }]] },
+    "Trigger Collection": { "main": [[{ "node": "Shape Report", "type": "main", "index": 0 }]] }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Africa/Cairo",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all"
+  }
+}

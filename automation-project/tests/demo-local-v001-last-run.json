@@ -1,0 +1,123 @@
+{
+    "workflowId":  "demo-local-summary-v001",
+    "status":  "success",
+    "nodes":  {
+                  "Trigger":  [
+                                  {
+
+                                  }
+                              ],
+                  "Step 1":  [
+                                 {
+                                     "title":  "Local AI model released",
+                                     "link":  "https://local.test/n1",
+                                     "body":  "A new local AI model was released today with agent support."
+                                 },
+                                 {
+                                     "title":  "Local AI model released",
+                                     "link":  "https://local.test/n1",
+                                     "body":  "Duplicate of the first item."
+                                 },
+                                 {
+                                     "title":  "Neighborhood football results",
+                                     "link":  "https://local.test/n2",
+                                     "body":  "Weekend football scores from the neighborhood league."
+                                 },
+                                 {
+                                     "title":  "Agents automate office work",
+                                     "link":  "https://local.test/n3",
+                                     "body":  "AI agents now handle office workflows and llm tasks."
+                                 }
+                             ],
+                  "Step 2":  [
+                                 {
+                                     "title":  "Local AI model released",
+                                     "link":  "https://local.test/n1",
+                                     "category":  "ai",
+                                     "important":  true
+                                 },
+                                 {
+                                     "title":  "Neighborhood football results",
+                                     "link":  "https://local.test/n2",
+                                     "category":  "sports",
+                                     "important":  false
+                                 },
+                                 {
+                                     "title":  "Agents automate office work",
+                                     "link":  "https://local.test/n3",
+                                     "category":  "ai",
+                                     "important":  true
+                                 }
+                             ],
+                  "Step 3":  [
+                                 {
+                                     "title":  "Local AI model released",
+                                     "link":  "https://local.test/n1",
+                                     "category":  "ai",
+                                     "important":  true,
+                                     "routed":  true,
+                                     "processedAt":  "2026-09-18T13:06:17.279Z"
+                                 },
+                                 {
+                                     "title":  "Neighborhood football results",
+                                     "link":  "https://local.test/n2",
+                                     "category":  "sports",
+                                     "important":  false,
+                                     "routed":  true,
+                                     "processedAt":  "2026-09-18T13:06:17.279Z"
+                                 },
+                                 {
+                                     "title":  "Agents automate office work",
+                                     "link":  "https://local.test/n3",
+                                     "category":  "ai",
+                                     "important":  true,
+                                     "routed":  true,
+                                     "processedAt":  "2026-09-18T13:06:17.279Z"
+                                 }
+                             ],
+                  "Check - Output only items with important=true":  [
+                                                                        {
+                                                                            "title":  "Local AI model released",
+                                                                            "link":  "https://local.test/n1",
+                                                                            "category":  "ai",
+                                                                            "important":  true,
+                                                                            "routed":  true,
+                                                                            "processedAt":  "2026-09-18T13:06:17.279Z"
+                                                                        },
+                                                                        {
+                                                                            "title":  "Agents automate office work",
+                                                                            "link":  "https://local.test/n3",
+                                                                            "category":  "ai",
+                                                                            "important":  true,
+                                                                            "routed":  true,
+                                                                            "processedAt":  "2026-09-18T13:06:17.279Z"
+                                                                        }
+                                                                    ],
+                  "Shape Output":  [
+                                       {
+                                           "title":  "Local AI model released",
+                                           "link":  "https://local.test/n1",
+                                           "category":  "ai",
+                                           "important":  true,
+                                           "processedAt":  "2026-09-18T13:06:17.279Z"
+                                       },
+                                       {
+                                           "title":  "Agents automate office work",
+                                           "link":  "https://local.test/n3",
+                                           "category":  "ai",
+                                           "important":  true,
+                                           "processedAt":  "2026-09-18T13:06:17.279Z"
+                                       }
+                                   ],
+                  "Check - Output only items with important=true - Skipped":  [
+                                                                                  {
+                                                                                      "title":  "Neighborhood football results",
+                                                                                      "link":  "https://local.test/n2",
+                                                                                      "category":  "sports",
+                                                                                      "important":  false,
+                                                                                      "routed":  true,
+                                                                                      "processedAt":  "2026-09-18T13:06:17.279Z"
+                                                                                  }
+                                                                              ]
+              }
+}

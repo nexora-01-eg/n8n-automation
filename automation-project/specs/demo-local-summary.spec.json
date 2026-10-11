@@ -1,0 +1,75 @@
+﻿{
+    "slug":  "demo-local-summary",
+    "version":  "v001",
+    "goal":  "Local demo: build a small in-memory news list, remove duplicates, classify items, keep important ones, and shape a clear output. No external APIs, no credentials, manual trigger.",
+    "trigger":  {
+                    "type":  "manual",
+                    "schedule":  "",
+                    "httpMethod":  "GET",
+                    "path":  "",
+                    "feedUrl":  ""
+                },
+    "inputs":  "Built-in sample items (generated inside the workflow)",
+    "processing":  [
+                       {
+                           "step":  "step1",
+                           "action":  "Generate 4 sample news items (one duplicated link)",
+                           "node":  "TODO: assigned by OpenCode"
+                       },
+                       {
+                           "step":  "step2",
+                           "action":  "Deduplicate by link, classify by keywords, mark important",
+                           "node":  "TODO: assigned by OpenCode"
+                       },
+                       {
+                           "step":  "step3",
+                           "action":  "Route important items to output shaping",
+                           "node":  "TODO: assigned by OpenCode"
+                       }
+                   ],
+    "conditions":  "Output only items with important=true",
+    "externalServices":  {
+
+                         },
+    "outputs":  {
+                    "description":  "List of items: title, link, category, important, processedAt",
+                    "example":  {
+                                    "title":  "",
+                                    "link":  "",
+                                    "category":  "",
+                                    "important":  true,
+                                    "processedAt":  ""
+                                },
+                    "storage":  "- (in-memory only, no persistence)"
+                },
+    "schedule":  "",
+    "errorHandling":  {
+                          "onFailure":  "continue",
+                          "notifyChannel":  ""
+                      },
+    "retryPolicy":  {
+                        "maxRetries":  1,
+                        "backoff":  "30s"
+                    },
+    "deduplication":  {
+                          "enabled":  true,
+                          "key":  "link",
+                          "strategy":  "skip seen links in batch"
+                      },
+    "storage":  "- (in-memory only, no persistence)",
+    "notifications":  {
+
+                      },
+    "credentialsRequired":  [
+
+                            ],
+    "security":  {
+                     "dataSentExternally":  [
+
+                                            ],
+                     "sideEffects":  [
+
+                                     ],
+                     "approvalRequired":  false
+                 }
+}

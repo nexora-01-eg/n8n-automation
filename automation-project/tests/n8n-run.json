@@ -1,0 +1,51 @@
+{
+    "workflowId":  "opportunity-hunter-v001",
+    "status":  "success",
+    "nodes":  {
+                  "Manual Run":  [
+                                     {
+
+                                     }
+                                 ],
+                  "Trigger Collection":  [
+                                             {
+                                                 "run_id":  6,
+                                                 "sources":  [
+                                                                 {
+                                                                     "source":  "hn_hiring",
+                                                                     "status":  "success",
+                                                                     "found":  38,
+                                                                     "added":  14,
+                                                                     "error":  null
+                                                                 },
+                                                                 {
+                                                                     "source":  "remoteok",
+                                                                     "status":  "success",
+                                                                     "found":  50,
+                                                                     "added":  25,
+                                                                     "error":  null
+                                                                 }
+                                                             ],
+                                                 "found":  88,
+                                                 "added":  39,
+                                                 "dups":  49,
+                                                 "rejected":  0,
+                                                 "errors":  0,
+                                                 "status":  "success",
+                                                 "finished_at":  "2026-09-24T15:08:23.002017+00:00"
+                                             }
+                                         ],
+                  "Shape Report":  [
+                                       {
+                                           "workflow":  "opportunity-hunter-v001",
+                                           "run_id":  6,
+                                           "status":  "success",
+                                           "found":  88,
+                                           "added":  39,
+                                           "dups":  49,
+                                           "errors":  0,
+                                           "finished_at":  "2026-09-24T15:08:23.002017+00:00"
+                                       }
+                                   ]
+              }
+}

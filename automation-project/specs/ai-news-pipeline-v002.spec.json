@@ -1,0 +1,36 @@
+{
+  "slug": "ai-news-pipeline",
+  "version": "v002",
+  "goal": "Dual independent per-source chains (Guardian, MIT) sharing one static store. A dead source kills only its own chain; the sibling stores and reports normally. No activation.",
+  "trigger": { "type": "manual", "schedule": "every 30 minutes (node present, workflow inactive)", "httpMethod": "GET", "path": "", "feedUrl": "" },
+  "inputs": ["Public RSS: Guardian AI", "Public RSS: MIT Technology Review", "Shared static store (newsDates)"],
+  "processing": [
+    { "step": "fetch", "action": "Per-chain rssFeedRead with fixed URL + onError continue", "node": "rssFeedRead" },
+    { "step": "normalize", "action": "Fixed 11-field schema + error capture", "node": "code" },
+    { "step": "dedupe", "action": "cyrb53 fingerprint in-batch", "node": "code" },
+    { "step": "filter", "action": "Route error items to per-chain Quarantine", "node": "if" },
+    { "step": "classify", "action": "Deterministic rules (NOT AI-powered)", "node": "code" },
+    { "step": "ai", "action": "AI_DISABLED passthrough stage", "node": "code" },
+    { "step": "store", "action": "Merge into shared static store by fingerprint", "node": "code" },
+    { "step": "report", "action": "Per-chain summary with global totals", "node": "code" }
+  ],
+  "conditions": ["Error items go to per-chain Quarantine, good items continue"],
+  "externalServices": ["Public RSS GET requests (Guardian, MIT TR)"],
+  "outputs": {
+    "description": "Per-chain report: workflow, chain, chainStatus, sourcesTotal, chainNew, storedTotal, aiMode, runAt",
+    "example": { "workflow": "ai-news-pipeline-v002", "chain": "guardian", "chainStatus": "success", "sourcesTotal": 2 },
+    "storage": "Static store newsDates (local SQLite, merged by fingerprint)"
+  },
+  "schedule": "every 30 minutes (inactive)",
+  "errorHandling": { "onFailure": "continue", "notifyChannel": "" },
+  "retryPolicy": { "maxRetries": 1, "backoff": "60s" },
+  "deduplication": { "enabled": true, "key": "cyrb53(url|normalizedTitle)", "strategy": "in-batch + cross-chain merge by fingerprint in shared store" },
+  "storage": "Static store (SQLite, per-workflow). No files. No wipe of existing data.",
+  "notifications": [],
+  "credentialsRequired": [],
+  "security": {
+    "dataSentExternally": ["public RSS GET requests only (feed XML download)"],
+    "sideEffects": [],
+    "approvalRequired": false
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "expectedWorkflow": "demo-hello-e2e-01",
+  "description": "Expected shape of each output item from the demo workflow",
+  "item": {
+    "message": "string, starts with 'Hello Nour from Cairo!'",
+    "success": true,
+    "name": "Nour",
+    "city": "Cairo",
+    "processedAt": "string, ISO datetime",
+    "shouted": "string, uppercase message"
+  }
+}

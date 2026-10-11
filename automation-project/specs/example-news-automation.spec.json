@@ -1,0 +1,94 @@
+﻿{
+    "slug":  "example-news-automation",
+    "version":  "v001",
+    "goal":  "Ø¬Ù…Ø¹ Ø£Ø®Ø¨Ø§Ø± Ø§Ù„Ø°ÙƒØ§Ø¡ Ø§Ù„Ø§ØµØ·Ù†Ø§Ø¹ÙŠ ÙƒÙ„ 30 Ø¯Ù‚ÙŠÙ‚Ø©ØŒ Ù…Ù†Ø¹ Ø§Ù„ØªÙƒØ±Ø§Ø±ØŒ ØªÙ„Ø®ÙŠØµ Ø§Ù„Ø£Ø®Ø¨Ø§Ø±ØŒ ØªØµÙ†ÙŠÙÙ‡Ø§ØŒ Ø­ÙØ¸ Ø§Ù„Ù†ØªØ§Ø¦Ø¬ØŒ ÙˆØ¥Ø±Ø³Ø§Ù„ Ø§Ù„Ù…Ù‡Ù… Ø¥Ù„Ù‰ Telegram.",
+    "trigger":  {
+                    "type":  "schedule",
+                    "schedule":  "every 30 minutes",
+                    "httpMethod":  "GET",
+                    "path":  "",
+                    "feedUrl":  "https://example.com/ai-news.rss"
+                },
+    "inputs":  [
+                   "RSS feed Ù„Ù„Ø£Ø®Ø¨Ø§Ø±",
+                   "Ø³Ø¬Ù„ Ø§Ù„Ø±ÙˆØ§Ø¨Ø· Ø§Ù„Ø³Ø§Ø¨Ù‚Ø© (Ù„Ù…Ù†Ø¹ Ø§Ù„ØªÙƒØ±Ø§Ø±)"
+               ],
+    "processing":  [
+                       {
+                           "step":  "step1",
+                           "action":  "Ù‚Ø±Ø§Ø¡Ø© Ø§Ù„Ø®Ù„Ø§ØµØ© Ø¹Ø¨Ø± RSS Read",
+                           "node":  "TODO: assigned by OpenCode"
+                       },
+                       {
+                           "step":  "step2",
+                           "action":  "Ø¥Ø²Ø§Ù„Ø© Ø§Ù„Ù…ÙƒØ±Ø± Ø¨Ù…ÙØªØ§Ø­ Ø§Ù„Ø±Ø§Ø¨Ø·",
+                           "node":  "TODO: assigned by OpenCode"
+                       },
+                       {
+                           "step":  "step3",
+                           "action":  "ØªÙ„Ø®ÙŠØµ ÙˆØªØµÙ†ÙŠÙ Ù…Ø­Ù„ÙŠ (Score Items)",
+                           "node":  "TODO: assigned by OpenCode"
+                       },
+                       {
+                           "step":  "step4",
+                           "action":  "Ø­ÙØ¸ Ø§Ù„Ù†ØªØ§Ø¦Ø¬ ÙÙŠ Google Sheets",
+                           "node":  "TODO: assigned by OpenCode"
+                       },
+                       {
+                           "step":  "step5",
+                           "action":  "Ø¥Ø±Ø³Ø§Ù„ Ø§Ù„Ù…Ù‡Ù… Ø¥Ù„Ù‰ Telegram",
+                           "node":  "TODO: assigned by OpenCode"
+                       }
+                   ],
+    "conditions":  "Ø¥Ø±Ø³Ø§Ù„ Telegram ÙÙ‚Ø· Ø¥Ø°Ø§ important=true",
+    "externalServices":  [
+                             "Google Sheets",
+                             "Telegram Bot API"
+                         ],
+    "outputs":  {
+                    "description":  "Ù‚Ø§Ø¦Ù…Ø© Ø¹Ù†Ø§ØµØ±: title, link, summary, category, important, processedAt",
+                    "example":  {
+
+                                },
+                    "storage":  "Google Sheets (NOOR-AI-News)"
+                },
+    "schedule":  "every 30 minutes",
+    "errorHandling":  {
+                          "onFailure":  "notify",
+                          "notifyChannel":  "Telegram"
+                      },
+    "retryPolicy":  {
+                        "maxRetries":  2,
+                        "backoff":  "exponential 60s"
+                    },
+    "deduplication":  {
+                          "enabled":  true,
+                          "key":  "link",
+                          "strategy":  "skip seen links"
+                      },
+    "storage":  "Google Sheets (NOOR-AI-News)",
+    "notifications":  "Telegram message for important items",
+    "credentialsRequired":  [
+                                {
+                                    "service":  "Google Sheets",
+                                    "type":  "googleSheetsOAuth2Api",
+                                    "reason":  "save news results"
+                                },
+                                {
+                                    "service":  "Telegram Bot",
+                                    "type":  "telegramApi",
+                                    "reason":  "send important news"
+                                }
+                            ],
+    "security":  {
+                     "dataSentExternally":  [
+                                                "news headlines to Google Sheets",
+                                                "important news text to Telegram"
+                                            ],
+                     "sideEffects":  [
+                                         "writes rows to Google Sheet",
+                                         "sends real Telegram messages"
+                                     ],
+                     "approvalRequired":  true
+                 }
+}
