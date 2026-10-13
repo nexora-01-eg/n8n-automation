@@ -1,0 +1,55 @@
+{
+  "name": "Arsenal Factory Level 10",
+  "nodes": [
+    {
+      "name": "Cron كل 6 ساعات",
+      "type": "n8n-nodes-base.cron",
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "name": "AI Pollinations",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        200,
+        0
+      ],
+      "notes": "يولد سكريبت + صورة"
+    },
+    {
+      "name": "ElevenLabs TTS",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        400,
+        0
+      ]
+    },
+    {
+      "name": "FFmpeg + Arsenal Overlay",
+      "type": "n8n-nodes-base.executeCommand",
+      "position": [
+        600,
+        0
+      ],
+      "notes": "يركب gold-particles + smoke + caption"
+    },
+    {
+      "name": "YouTube API",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        800,
+        0
+      ]
+    },
+    {
+      "name": "Google Sheets Log",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        800,
+        200
+      ]
+    }
+  ]
+}
